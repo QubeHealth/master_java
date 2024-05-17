@@ -51,7 +51,7 @@ public class JwtAuthenticationFilter implements Filter {
 
         // Construct JSON response with error message
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.writeValue(response.getWriter(), new ApiResponse<>(false, "Invalid or Expired Token", null));
+        objectMapper.writeValue(response.getWriter(), new ApiResponse<>(false, "Unauthorised", null));
     }
 
     @Override

@@ -2,7 +2,7 @@ package com.master;
 
 import org.jdbi.v3.core.Jdbi;
 
-import com.master.controller.PaymentController;
+import com.master.controller.HspController;
 import com.master.utility.AuthFilter;
 import com.master.utility.JwtAuthenticationFilter;
 
@@ -49,9 +49,9 @@ public class MasterApplication extends Application<MasterConfiguration> {
         environment.servlets().addFilter("auth-filter", cAuthFilter)
                 .addMappingForUrlPatterns(null, true, "/api/master/*");
 
-        PaymentController paymentController = new PaymentController(configuration, validator, jdbi);
+        HspController hspController = new HspController(configuration, validator, jdbi);
 
-        environment.jersey().register(paymentController);
+        environment.jersey().register(hspController);
     }
 
 }

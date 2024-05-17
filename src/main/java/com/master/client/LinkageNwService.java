@@ -12,10 +12,10 @@ public class LinkageNwService extends BaseServiceClient {
         super(configuration);
     }
 
-    public ApiResponse<Object> generateOtp(String mobile) {
+    public ApiResponse<Object> getVpaByMobile(Long mobile) {
 
-        String url = configuration.getLinkageUrl() + "sms/generateOtp";
-        Map<String, String> requestBody = new HashMap<>();
+        String url = configuration.getLinkageUrl() + "befisc/getVpaByMobile";
+        Map<String, Long> requestBody = new HashMap<>();
         requestBody.put("mobile", mobile);
         return this.callThirdPartyApi(url, "post", requestBody, null);
     }
