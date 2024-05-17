@@ -1,0 +1,11 @@
+.idea/
+.history/
+.vscode/
+target/
+keys/
+uploads/
+
+serviceAccount.json
+config.yml
+
+logs/*
