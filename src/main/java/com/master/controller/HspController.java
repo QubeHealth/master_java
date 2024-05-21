@@ -1,5 +1,6 @@
 package com.master.controller;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -10,6 +11,9 @@ import com.master.api.ApiResponse;
 import com.master.client.LinkageNwService;
 import com.master.core.constants.Constants;
 import com.master.core.validations.GetVpaByMobileSchema;
+import com.master.core.validations.HspIdSchema;
+import com.master.db.model.Hsp;
+import com.master.services.HspService;
 import com.master.utility.Helper;
 
 import jakarta.validation.Validator;
@@ -23,15 +27,17 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-@Path("/api/master")
+@Path("/api/hsp")
 @Produces(MediaType.APPLICATION_JSON)
 public class HspController extends BaseController {
     private LinkageNwService linkageNwService;
+    private HspService hspService;
 
     public HspController(MasterConfiguration configuration, Validator validator, Jdbi jdbi) {
         super(configuration, validator, jdbi);
 
         this.linkageNwService = new LinkageNwService(configuration);
+        this.hspService = new HspService(configuration, jdbi);
     }
 
     private Response response(Response.Status status, Object data) {
@@ -63,7 +69,7 @@ public class HspController extends BaseController {
 
         Map<String, String> result = (Map<String, String>) befiscRes.getData();
 
-        String accountName = "kunalhealthkamkble"; //result.get("accountName").toLowerCase();
+        String accountName = result.get("accountName").toLowerCase();
         String merchantName = result.get("name").toLowerCase();
 
         boolean isHealthCheck = false;
@@ -78,7 +84,33 @@ public class HspController extends BaseController {
             }
         }
 
-        return response(Response.Status.OK, new ApiResponse<>(isHealthCheck, isHealthCheck ? "Valid hsp" : "Invalid hsp", keyword));
+        return response(Response.Status.OK,
+                new ApiResponse<>(isHealthCheck, isHealthCheck ? "Valid hsp" : "Invalid hsp", keyword));
+
+    }
+
+    @POST
+    @Path("/getHspListByIds")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getHspListByIds(HspIdSchema body) {
+
+        Set<ConstraintViolation<HspIdSchema>> violations = validator.validate(body);
+        if (!violations.isEmpty()) {
+            // Construct error message from violations
+            String errorMessage = violations.stream()
+                    .map(ConstraintViolation::getMessage)
+                    .reduce("", (acc, msg) -> acc.isEmpty() ? msg : acc + "; " + msg);
+            return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, errorMessage, null));
+        }
+
+        List<Hsp> hspList = this.hspService.getHspDataListByIds(body.getHspIds());
+
+        if (hspList == null || hspList.isEmpty()) {
+            return response(Response.Status.NOT_FOUND, new ApiResponse<>(false, "No hsp data found", null));
+        }
+
+        return response(Response.Status.OK, new ApiResponse<>(true, "Hsp details fetch success", hspList));
 
     }
 
