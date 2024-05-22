@@ -22,4 +22,10 @@ public class HspService extends BaseService {
         return hspDao.gethspDetailsByIds(hspIds);
     }
 
+    public Long insertHspByMobile(Map<String, Object> insertData) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+        return hspDao.insertHspByMobile(insertData);
+    }
+
 }
