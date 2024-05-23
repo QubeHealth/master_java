@@ -78,4 +78,10 @@ public class HspService extends BaseService {
             return new IntsertHspBrandName(false, "Failed to added Hsp Brand Name");
         }
     }
+    public Long insertHspByMobile(Map<String, Object> insertData) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+        return hspDao.insertHspByMobile(insertData);
+    }
+
 }

@@ -3,6 +3,7 @@ package com.master.controller;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.jdbi.v3.core.Jdbi;
 
@@ -69,25 +70,37 @@ public class HspController extends BaseController {
             return response(Response.Status.NOT_FOUND, befiscRes);
         }
 
-        Map<String, String> result = (Map<String, String>) befiscRes.getData();
+        Map<String, Object> data = (Map<String, Object>) befiscRes.getData();
 
-        String accountName = result.get("accountName").toLowerCase();
-        String merchantName = result.get("name").toLowerCase();
+        String accountName = data.get("accountName").toString().toLowerCase();
+        String merchantName = data.get("name").toString().toLowerCase();
 
-        boolean isHealthCheck = false;
-        String keyword = "";
+        boolean validHsp = false;
 
         for (String candidateKeyword : Constants.hspKeywords) {
             candidateKeyword = candidateKeyword.toLowerCase();
             if (accountName.contains(candidateKeyword) || merchantName.contains(candidateKeyword)) {
-                isHealthCheck = true;
-                keyword = candidateKeyword;
+                validHsp = true;
                 break;
             }
         }
 
+        String uuid = UUID.randomUUID().toString();
+        data.put("uuid", uuid);
+        data.put("mobile", body.getMobile());
+        data.put("status", validHsp ? "VERIFIED" : "PENDING");
+
+        Long hspId = this.hspService.insertHspByMobile(data);
+
+        if (hspId == null) {
+            return response(Response.Status.FORBIDDEN,
+                    new ApiResponse<>(false, "Failed to add hsp", null));
+
+        }
+
         return response(Response.Status.OK,
-                new ApiResponse<>(isHealthCheck, isHealthCheck ? "Valid hsp" : "Invalid hsp", keyword));
+                new ApiResponse<>(validHsp, validHsp ? "Valid Healthcase" : "Invalid Healthcare",
+                        Map.of("vpa", data.get("vpa"), "merchant_name", merchantName, "hsp_id", hspId)));
 
     }
 
