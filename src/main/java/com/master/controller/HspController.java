@@ -9,7 +9,7 @@ import org.jdbi.v3.core.Jdbi;
 
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
-import com.master.api.IntsertHspBrandName;
+import com.master.api.InsertHspBrandName;
 import com.master.client.LinkageNwService;
 import com.master.core.constants.Constants;
 import com.master.core.validations.GetVpaByMobileSchema;
@@ -143,7 +143,7 @@ public class HspController extends BaseController {
             return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, errorMessage, null));
         }
        
-        IntsertHspBrandName response = this.hspService.hspBrandName( reqBody);
+        InsertHspBrandName response = this.hspService.hspBrandName( reqBody);
         return Response.status(response.getStatus() ? Response.Status.OK : Response.Status.INTERNAL_SERVER_ERROR)
         .entity(response)
         .build();
