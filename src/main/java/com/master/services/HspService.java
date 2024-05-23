@@ -39,7 +39,7 @@ public class HspService extends BaseService {
                         reqBody.getTransactionId(), reqBody.getHspBrandName());
 
                 hspDao.insertHspBrandName(reqBody.getHspId(), jsonLikeData);
-                return new InsertHspBrandName(false, "Successfully added new Hsp Brand Name");
+                return new InsertHspBrandName(true, "Successfully added new Hsp Brand Name");
             }
 
             List<Map<String, String>> brandNameList;
@@ -72,7 +72,7 @@ public class HspService extends BaseService {
             String updatedJsonData;
             updatedJsonData = objectMapper.writeValueAsString(brandNameList);
             hspDao.insertHspBrandName(reqBody.getHspId(), updatedJsonData);
-            return new InsertHspBrandName(false, "Successfully updated existing Hsp Brand Name List");
+            return new InsertHspBrandName(true, "Successfully updated existing Hsp Brand Name List");
 
         } catch (Exception e) {
             return new InsertHspBrandName(false, "Failed to added Hsp Brand Name");
