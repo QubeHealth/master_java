@@ -9,10 +9,12 @@ import org.jdbi.v3.core.Jdbi;
 
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
+import com.master.api.InsertHspBrandName;
 import com.master.client.LinkageNwService;
 import com.master.core.constants.Constants;
 import com.master.core.validations.GetVpaByMobileSchema;
 import com.master.core.validations.HspIdSchema;
+import com.master.core.validations.SaveHspBrandName;
 import com.master.db.model.Hsp;
 import com.master.services.HspService;
 import com.master.utility.Helper;
@@ -127,4 +129,23 @@ public class HspController extends BaseController {
 
     }
 
+    @POST
+    @Path("/saveHspBrandName")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response hspBrandName(SaveHspBrandName reqBody){
+         Set<ConstraintViolation<SaveHspBrandName>> violations = validator.validate(reqBody);
+        if (!violations.isEmpty()) {
+            // Construct error message from violations
+            String errorMessage = violations.stream()
+                    .map(ConstraintViolation::getMessage)
+                    .reduce("", (acc, msg) -> acc.isEmpty() ? msg : acc + "; " + msg);
+            return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, errorMessage, null));
+        }
+       
+        InsertHspBrandName response = this.hspService.hspBrandName( reqBody);
+        return Response.status(response.getStatus() ? Response.Status.OK : Response.Status.INTERNAL_SERVER_ERROR)
+        .entity(response)
+        .build();
+    }
 }
