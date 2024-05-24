@@ -1,8 +1,8 @@
 package com.master.core.validations;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,15 +10,15 @@ import lombok.Setter;
 @Setter
 public class SaveHspBrandName {
 
-    @NotEmpty(message = "HspIds cannot be empty")
     @JsonProperty("hsp_id")
-    private String hspId;
+    private Integer hspId;
 
     @NotEmpty(message = "transactionId cannot be empty")
+    @Pattern(regexp = ".*\\D.*", message = "transactionId must be a String")
     @JsonProperty("transaction_id")
     private String transactionId;
 
-    @NotEmpty(message = "hspBrandName cannot be empty")
+    @Pattern(regexp = "^[^\\d]*$", message = "hspBrandName must be a String")
     @JsonProperty("hsp_brand_name")
     private String hspBrandName;
     

@@ -75,7 +75,7 @@ public class HspService extends BaseService {
             return new InsertHspBrandName(true, "Successfully updated existing Hsp Brand Name List");
 
         } catch (Exception e) {
-            return new InsertHspBrandName(false, "Failed to added Hsp Brand Name");
+            return new InsertHspBrandName(false, "Failed to add Hsp Brand Name");
         }
     }
     public Long insertHspByMobile(Map<String, Object> insertData) {
