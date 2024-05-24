@@ -13,12 +13,12 @@ public class SaveHspBrandName {
     @JsonProperty("hsp_id")
     private Integer hspId;
 
-    @NotEmpty(message = "transactionId cannot be empty")
-    @Pattern(regexp = ".*\\D.*", message = "transactionId must be a String")
+    @NotEmpty(message = "transaction_id cannot be empty")
+    @Pattern(regexp = ".*\\D.*", message = "transaction_id must be a String")
     @JsonProperty("transaction_id")
     private String transactionId;
 
-    @Pattern(regexp = "^[^\\d]*$", message = "hspBrandName must be a String")
+    @Pattern(regexp = ".*\\D.*", message = "hsp_brand_name must be a String")
     @JsonProperty("hsp_brand_name")
     private String hspBrandName;
     
