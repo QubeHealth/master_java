@@ -18,6 +18,7 @@ public class SaveHspBrandName {
     @JsonProperty("transaction_id")
     private String transactionId;
 
+    @NotEmpty(message = "hsp_brand_name cannot be empty")
     @Pattern(regexp = ".*\\D.*", message = "hsp_brand_name must be a String")
     @JsonProperty("hsp_brand_name")
     private String hspBrandName;
