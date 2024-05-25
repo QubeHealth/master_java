@@ -2,6 +2,7 @@ package com.master.core.validations;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +11,7 @@ import lombok.Setter;
 @Setter
 public class SaveHspBrandName {
 
-    @NotEmpty(message = "hsp_id cannot be empty")
+    @NotNull(message = "hsp_id cannot be empty")
     @JsonProperty("hsp_id")
     private Integer hspId;
 
@@ -23,5 +24,5 @@ public class SaveHspBrandName {
     @Pattern(regexp = ".*\\D.*", message = "hsp_brand_name must be a String")
     @JsonProperty("hsp_brand_name")
     private String hspBrandName;
-    
+
 }
