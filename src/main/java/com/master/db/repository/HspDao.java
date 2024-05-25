@@ -23,10 +23,10 @@ public interface HspDao {
 
     @SqlQuery(Queries.GET_HSP_BRAND_NAME)
     @RegisterBeanMapper(GetHspBrandName.class)
-    GetHspBrandName getHspBrandName(@Bind("hsp_id") Integer hspId);
+    GetHspBrandName getHspBrandName(@Bind("hsp_id") String hspId);
 
     @SqlUpdate(Queries.INSERT_HSP_BRAND_NAME)
-    void insertHspBrandName(@Bind("hspId") Integer hspId, @Bind("hspBrandName") String hspBrandName);
+    void insertHspBrandName(@Bind("hspId") String hspId, @Bind("hspBrandName") String hspBrandName);
     
     @SqlUpdate(Queries.INSERT_HSP_BY_MOBILE)
     @GetGeneratedKeys("id")
