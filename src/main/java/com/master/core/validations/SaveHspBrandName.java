@@ -10,6 +10,7 @@ import lombok.Setter;
 @Setter
 public class SaveHspBrandName {
 
+    @NotEmpty(message = "hsp_id cannot be empty")
     @JsonProperty("hsp_id")
     private Integer hspId;
 
