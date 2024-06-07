@@ -1,15 +1,20 @@
 package com.master.services;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
+import org.glassfish.jersey.message.internal.Qualified;
 import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.master.MasterConfiguration;
 import com.master.api.InsertHspBrandName;
+import com.master.core.constants.Queries;
 import com.master.core.validations.SaveHspBrandName;
 import com.master.db.model.Hsp;
 import com.master.db.model.GetHspBrandName;
@@ -78,10 +83,16 @@ public class HspService extends BaseService {
             return new InsertHspBrandName(false, "Failed to add Hsp Brand Name");
         }
     }
+
     public Long insertHspByMobile(Map<String, Object> insertData) {
 
+        Map<String, Object> data = new HashMap<>(insertData);
+        String uuid = UUID.randomUUID().toString();
+        data.put("uuid", uuid);
+        data.put("status", (boolean) data.get("valid_hsp") ? "VERIFIED" : "PENDING");
+
         HspDao hspDao = jdbi.onDemand(HspDao.class);
-        return hspDao.insertHspByMobile(insertData);
+        return hspDao.insertHspByMobile(data);
     }
 
 }

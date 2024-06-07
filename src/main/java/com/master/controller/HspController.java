@@ -71,36 +71,17 @@ public class HspController extends BaseController {
         }
 
         Map<String, Object> data = (Map<String, Object>) befiscRes.getData();
-
-        String accountName = data.get("accountName").toString().toLowerCase();
-        String merchantName = data.get("name").toString().toLowerCase();
-
-        boolean validHsp = false;
-
-        for (String candidateKeyword : Constants.hspKeywords) {
-            candidateKeyword = candidateKeyword.toLowerCase();
-            if (accountName.contains(candidateKeyword) || merchantName.contains(candidateKeyword)) {
-                validHsp = true;
-                break;
-            }
-        }
-
-        String uuid = UUID.randomUUID().toString();
-        data.put("uuid", uuid);
         data.put("mobile", body.getMobile());
-        data.put("status", validHsp ? "VERIFIED" : "PENDING");
 
         Long hspId = this.hspService.insertHspByMobile(data);
 
         if (hspId == null) {
             return response(Response.Status.FORBIDDEN,
                     new ApiResponse<>(false, "Failed to add hsp", null));
-
         }
+        data.put("hsp_id", hspId);
 
-        return response(Response.Status.OK,
-                new ApiResponse<>(validHsp, validHsp ? "Valid Healthcase" : "Invalid Healthcare",
-                        Map.of("vpa", data.get("vpa"), "merchant_name", merchantName, "hsp_id", hspId)));
+        return response(Response.Status.OK, new ApiResponse<>(true, "Vpa fetch success", data));
 
     }
 
@@ -133,8 +114,8 @@ public class HspController extends BaseController {
     @Path("/saveHspBrandName")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response hspBrandName(SaveHspBrandName reqBody){
-         Set<ConstraintViolation<SaveHspBrandName>> violations = validator.validate(reqBody);
+    public Response hspBrandName(SaveHspBrandName reqBody) {
+        Set<ConstraintViolation<SaveHspBrandName>> violations = validator.validate(reqBody);
         if (!violations.isEmpty()) {
             // Construct error message from violations
             String errorMessage = violations.stream()
@@ -142,10 +123,10 @@ public class HspController extends BaseController {
                     .reduce("", (acc, msg) -> acc.isEmpty() ? msg : acc + "; " + msg);
             return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, errorMessage, null));
         }
-       
-        InsertHspBrandName response = this.hspService.hspBrandName( reqBody);
+
+        InsertHspBrandName response = this.hspService.hspBrandName(reqBody);
         return Response.status(response.getStatus() ? Response.Status.OK : Response.Status.INTERNAL_SERVER_ERROR)
-        .entity(response)
-        .build();
+                .entity(response)
+                .build();
     }
 }
