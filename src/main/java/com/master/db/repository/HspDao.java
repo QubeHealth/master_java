@@ -32,4 +32,8 @@ public interface HspDao {
     @GetGeneratedKeys("id")
     Long insertHspByMobile(@BindMap Map<String, Object> insertData);
 
+    @SqlUpdate(Queries.INSERT_HSP_BANK_DATA)
+    @GetGeneratedKeys("id")
+    Long insertHspBankData(@BindMap Map<String, Object> insertData);
+
 }

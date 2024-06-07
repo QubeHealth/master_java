@@ -12,9 +12,12 @@ import com.master.api.ApiResponse;
 import com.master.api.InsertHspBrandName;
 import com.master.client.LinkageNwService;
 import com.master.core.constants.Constants;
-import com.master.core.validations.GetVpaByMobileSchema;
+import com.master.core.validations.PaymentSchemas;
 import com.master.core.validations.HspIdSchema;
 import com.master.core.validations.SaveHspBrandName;
+import com.master.core.validations.PaymentSchemas.BankSchema;
+import com.master.core.validations.PaymentSchemas.MobileSchema;
+import com.master.core.validations.PaymentSchemas.VpaSchemas;
 import com.master.db.model.Hsp;
 import com.master.services.HspService;
 import com.master.utility.Helper;
@@ -52,9 +55,9 @@ public class HspController extends BaseController {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getVpaByMobile(@Context HttpServletRequest request,
-            GetVpaByMobileSchema body) {
+            MobileSchema body) {
 
-        Set<ConstraintViolation<GetVpaByMobileSchema>> violations = validator.validate(body);
+        Set<ConstraintViolation<MobileSchema>> violations = validator.validate(body);
         if (!violations.isEmpty()) {
             // Construct error message from violations
             String errorMessage = violations.stream()
@@ -128,5 +131,81 @@ public class HspController extends BaseController {
         return Response.status(response.getStatus() ? Response.Status.OK : Response.Status.INTERNAL_SERVER_ERROR)
                 .entity(response)
                 .build();
+    }
+
+    @POST
+    @Path("/validateVpa")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response validateVpa(@Context HttpServletRequest request,
+            VpaSchemas body) {
+
+        Set<ConstraintViolation<VpaSchemas>> violations = validator.validate(body);
+        if (!violations.isEmpty()) {
+            // Construct error message from violations
+            String errorMessage = violations.stream()
+                    .map(ConstraintViolation::getMessage)
+                    .reduce("", (acc, msg) -> acc.isEmpty() ? msg : acc + "; " + msg);
+            return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, errorMessage, null));
+        }
+
+        ApiResponse<Object> befiscRes = this.linkageNwService.validateVpa((body.getVpa()));
+        logger.info("BEFISC RESPONSE : {}", Helper.toJsonString(befiscRes));
+
+        if (!befiscRes.getStatus()) {
+            return response(Response.Status.NOT_FOUND, befiscRes);
+        }
+
+        Map<String, Object> data = (Map<String, Object>) befiscRes.getData();
+        data.put("mobile", null);
+
+        Long hspId = this.hspService.insertHspByMobile(data);
+
+        if (hspId == null) {
+            return response(Response.Status.FORBIDDEN,
+                    new ApiResponse<>(false, "Failed to add hsp", null));
+        }
+        data.put("hsp_id", hspId);
+
+        return response(Response.Status.OK, new ApiResponse<>(true, "Vpa validation success", data));
+
+    }
+
+    @POST
+    @Path("/validateBankAccount")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response validateBankAccount(@Context HttpServletRequest request,
+            BankSchema body) {
+
+        Set<ConstraintViolation<BankSchema>> violations = validator.validate(body);
+        if (!violations.isEmpty()) {
+            // Construct error message from violations
+            String errorMessage = violations.stream()
+                    .map(ConstraintViolation::getMessage)
+                    .reduce("", (acc, msg) -> acc.isEmpty() ? msg : acc + "; " + msg);
+            return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, errorMessage, null));
+        }
+
+        ApiResponse<Object> befiscRes = this.linkageNwService.validateBankDetails((body.getAccountNumber()),
+                body.getIfscCode());
+        logger.info("BEFISC RESPONSE : {}", Helper.toJsonString(befiscRes));
+
+        if (!befiscRes.getStatus()) {
+            return response(Response.Status.NOT_FOUND, befiscRes);
+        }
+
+        Map<String, Object> data = (Map<String, Object>) befiscRes.getData();
+
+        Long hspId = this.hspService.insertHspBank(data);
+
+        if (hspId == null) {
+            return response(Response.Status.FORBIDDEN,
+                    new ApiResponse<>(false, "Failed to add hsp", null));
+        }
+        data.put("hsp_id", hspId);
+
+        return response(Response.Status.OK, new ApiResponse<>(true, "Vpa validation success", data));
+
     }
 }

@@ -95,4 +95,15 @@ public class HspService extends BaseService {
         return hspDao.insertHspByMobile(data);
     }
 
+    public Long insertHspBank(Map<String, Object> insertData) {
+
+        Map<String, Object> data = new HashMap<>(insertData);
+        String uuid = UUID.randomUUID().toString();
+        data.put("uuid", uuid);
+        data.put("status", (boolean) data.get("valid_hsp") ? "VERIFIED" : "PENDING");
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+        return hspDao.insertHspBankData(data);
+    }
+
 }
