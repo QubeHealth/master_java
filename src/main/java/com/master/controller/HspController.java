@@ -3,16 +3,12 @@ package com.master.controller;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
-
 import org.jdbi.v3.core.Jdbi;
 
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
 import com.master.api.InsertHspBrandName;
 import com.master.client.LinkageNwService;
-import com.master.core.constants.Constants;
-import com.master.core.validations.PaymentSchemas;
 import com.master.core.validations.HspIdSchema;
 import com.master.core.validations.SaveHspBrandName;
 import com.master.core.validations.PaymentSchemas.BankSchema;
@@ -66,6 +62,11 @@ public class HspController extends BaseController {
             return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, errorMessage, null));
         }
 
+        Map<String, Object> hspRes = this.hspService.getHspByMobile(body.getMobile());
+        if (hspRes != null) {
+            return response(Response.Status.OK, new ApiResponse<>(true, "HSP already exist", hspRes));
+        }
+
         ApiResponse<Object> befiscRes = this.linkageNwService.getVpaByMobile(Long.parseLong(body.getMobile()));
         logger.info("BEFISC RESPONSE : {}", Helper.toJsonString(befiscRes));
 
@@ -83,6 +84,8 @@ public class HspController extends BaseController {
                     new ApiResponse<>(false, "Failed to add hsp", null));
         }
         data.put("hsp_id", hspId);
+        data.remove("keyword");
+        data.remove("mobile");
 
         return response(Response.Status.OK, new ApiResponse<>(true, "Vpa fetch success", data));
 
@@ -149,6 +152,11 @@ public class HspController extends BaseController {
             return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, errorMessage, null));
         }
 
+        Map<String, Object> hspRes = this.hspService.getHspByVpa(body.getVpa());
+        if (hspRes != null) {
+            return response(Response.Status.OK, new ApiResponse<>(true, "Hsp already exist", hspRes));
+        }
+
         ApiResponse<Object> befiscRes = this.linkageNwService.validateVpa((body.getVpa()));
         logger.info("BEFISC RESPONSE : {}", Helper.toJsonString(befiscRes));
 
@@ -166,6 +174,8 @@ public class HspController extends BaseController {
                     new ApiResponse<>(false, "Failed to add hsp", null));
         }
         data.put("hsp_id", hspId);
+        data.remove("keyword");
+        data.remove("mobile");
 
         return response(Response.Status.OK, new ApiResponse<>(true, "Vpa validation success", data));
 
@@ -187,6 +197,11 @@ public class HspController extends BaseController {
             return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, errorMessage, null));
         }
 
+        Map<String, Object> hspRes = this.hspService.getHspByBankDetails(body);
+        if (hspRes != null) {
+            return response(Response.Status.OK, new ApiResponse<>(true, "HSP already exist", hspRes));
+        }
+
         ApiResponse<Object> befiscRes = this.linkageNwService.validateBankDetails((body.getAccountNumber()),
                 body.getIfscCode());
         logger.info("BEFISC RESPONSE : {}", Helper.toJsonString(befiscRes));
@@ -204,8 +219,10 @@ public class HspController extends BaseController {
                     new ApiResponse<>(false, "Failed to add hsp", null));
         }
         data.put("hsp_id", hspId);
+        data.put("merchant_name", data.get("bank_account_name"));
+        data.remove("keyword");
 
-        return response(Response.Status.OK, new ApiResponse<>(true, "Vpa validation success", data));
+        return response(Response.Status.OK, new ApiResponse<>(true, "Bank validation success", data));
 
     }
 }
