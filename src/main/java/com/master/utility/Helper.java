@@ -4,22 +4,26 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-
-import javax.crypto.Cipher;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
 import org.apache.commons.codec.digest.DigestUtils;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 public final class Helper {
     private Helper() {
@@ -156,5 +160,20 @@ public final class Helper {
             return false; // If an exception is caught, URL is not valid
         }
     }
+    public static class DataMapper {
+        private DataMapper() {
+        }
 
+        public static <T> Map<String, Object> mapApiResponse(T response) {
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                return mapper.convertValue(response, new TypeReference<Map<String, Object>>() {
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Collections.emptyMap();
+            }
+        }
+
+    }
 }
