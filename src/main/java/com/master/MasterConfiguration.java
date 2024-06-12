@@ -18,6 +18,9 @@ public class MasterConfiguration extends Configuration {
     @NotEmpty
     private String xApiKey;
 
+    @NotEmpty
+    private String linkageJavaUrl;
+
     public String getxApiKey() {
         return xApiKey;
     }
@@ -61,5 +64,13 @@ public class MasterConfiguration extends Configuration {
 
     public void setDatabase(DataSourceFactory database) {
         this.database = database;
+    }
+
+    public String getLinkageJavaUrl() {
+        return linkageJavaUrl;
+    }
+
+    public void setLinkageJavaUrl(String linkageJavaUrl) {
+        this.linkageJavaUrl = linkageJavaUrl;
     }
 }

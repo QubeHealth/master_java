@@ -1,16 +1,22 @@
 package com.master.services;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
+import org.glassfish.jersey.message.internal.Qualified;
 import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.master.MasterConfiguration;
 import com.master.api.InsertHspBrandName;
+import com.master.core.constants.Queries;
 import com.master.core.validations.SaveHspBrandName;
+import com.master.core.validations.PaymentSchemas.BankSchema;
 import com.master.db.model.Hsp;
 import com.master.db.model.GetHspBrandName;
 import com.master.db.repository.HspDao;
@@ -78,10 +84,85 @@ public class HspService extends BaseService {
             return new InsertHspBrandName(false, "Failed to add Hsp Brand Name");
         }
     }
+
     public Long insertHspByMobile(Map<String, Object> insertData) {
 
+        Map<String, Object> data = new HashMap<>(insertData);
+        String uuid = UUID.randomUUID().toString();
+        data.put("uuid", uuid);
+        data.put("status", data.get("status").equals("VALID_HSP") ? "VERIFIED" : "PENDING");
+
         HspDao hspDao = jdbi.onDemand(HspDao.class);
-        return hspDao.insertHspByMobile(insertData);
+        return hspDao.insertHspByMobile(data);
+    }
+
+    public Long insertHspBank(Map<String, Object> insertData) {
+
+        Map<String, Object> data = new HashMap<>(insertData);
+        String uuid = UUID.randomUUID().toString();
+        data.put("uuid", uuid);
+        data.put("status", data.get("status").equals("VALID_HSP") ? "VERIFIED" : "PENDING");
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+        return hspDao.insertHspBankData(data);
+    }
+
+    public Map<String, Object> getHspByMobile(String mobile) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        Hsp hsp = hspDao.getHspbyMobile(mobile);
+        if (hsp == null) {
+            return null;
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("bank_account_name", hsp.getHspOfficialName());
+        data.put("vpa", hsp.getVpa());
+        data.put("merchant_name", hsp.getHspName());
+        data.put("status", hsp.getStatus().equals("VERIFIED") ? "VALID_HSP" : "INVALID_HSP");
+        data.put("hsp_id", hsp.getHspId());
+
+        return data;
+    }
+
+    public Map<String, Object> getHspByVpa(String vpa) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        Hsp hsp = hspDao.getHspbyVpa(vpa);
+        if (hsp == null) {
+            return null;
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("bank_account_name", hsp.getHspOfficialName());
+        data.put("vpa", hsp.getVpa());
+        data.put("merchant_name", hsp.getHspName());
+        data.put("status", hsp.getStatus().equals("VERIFIED") ? "VALID_HSP" : "INVALID_HSP");
+        data.put("hsp_id", hsp.getHspId());
+
+        return data;
+    }
+
+    public Map<String, Object> getHspByBankDetails(BankSchema body) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        Hsp hsp = hspDao.getHspbyBankDetails(body);
+        if (hsp == null) {
+            return null;
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("bank_account_name", hsp.getHspOfficialName());
+        data.put("account_number", hsp.getBankAccountNumber());
+        data.put("ifsc_code", hsp.getBankIfsc());
+        data.put("merchant_name", hsp.getHspName());
+        data.put("status", hsp.getStatus().equals("VERIFIED") ? "VALID_HSP" : "INVALID_HSP");
+        data.put("hsp_id", hsp.getHspId());
+
+        return data;
     }
 
 }
