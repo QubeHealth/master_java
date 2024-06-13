@@ -5,14 +5,14 @@ import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 
 import com.master.core.constants.Queries;
-import com.master.db.model.SelfFundedData;
+import com.master.db.model.PrefundedInfo;
 
 
     public interface MiscDao {
 
-    @SqlQuery(Queries.GET_SELFUNDED_DETAILS)
-    @RegisterBeanMapper(SelfFundedData.class)
-    SelfFundedData getSelfundedDetails(@Bind("data") String data);
+    @SqlQuery(Queries.GET_SELF_FUNDED_DETAILS)
+    @RegisterBeanMapper(PrefundedInfo.class)
+    PrefundedInfo getSelfundedDetails(@Bind("data") String data);
 
 
 }

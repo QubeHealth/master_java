@@ -251,5 +251,7 @@ public abstract class Constants {
             "dr ",
 
     };
+    public static final Long otherHospitals = (long) 4;
+    public static final Long partnerHospital = (long) 1;
 
 }
