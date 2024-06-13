@@ -3,7 +3,7 @@ package com.master;
 import org.jdbi.v3.core.Jdbi;
 
 import com.master.controller.HspController;
-import com.master.controller.MiscController;
+import com.master.controller.SelfFundedController;
 import com.master.utility.AuthFilter;
 import com.master.utility.JwtAuthenticationFilter;
 
@@ -51,10 +51,10 @@ public class MasterApplication extends Application<MasterConfiguration> {
                 .addMappingForUrlPatterns(null, true, "/api/master/*");
 
         HspController hspController = new HspController(configuration, validator, jdbi);
-        MiscController miscController = new MiscController(configuration, validator, jdbi);
+        SelfFundedController selfFundedController = new SelfFundedController(configuration, validator, jdbi);
 
         environment.jersey().register(hspController);
-        environment.jersey().register(miscController);
+        environment.jersey().register(selfFundedController);
     }
 
 }

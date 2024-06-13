@@ -21,4 +21,15 @@ public class Hsp {
 
     private String level;
 
+    @JsonProperty("hsp_official_name")
+    private String hspOfficialName;
+
+    @JsonProperty("bank_account_number")
+    private String bankAccountNumber;
+
+    @JsonProperty("bank_ifsc")
+    private String bankIfsc;
+
+    private String status;
+
 }
