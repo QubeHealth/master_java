@@ -22,15 +22,12 @@ public class SelfFundedDataSchema {
     @Getter
     @Setter
     public static class Documents {
+        @NotNull(message = "hsp_id cannot be empty")
         @JsonProperty("hsp_id")
         private Long hspId;
-         
-        @NotNull(message = "is_scanned cannot be empty")
-        @JsonProperty("is_scanned")
-        private boolean isScanned;
 
-        @JsonProperty("is_partner_hsp")
-        private boolean isPartnerHsp;
-
+        @JsonProperty("show_info")
+        private boolean showInfo;
+        
     }
 }
