@@ -45,7 +45,7 @@ public class SelfFundedService extends BaseService {
             SelfFundedDao selfFundedDao = jdbi.onDemand(SelfFundedDao.class);
 
            List< PrefundedDocument> data = selfFundedDao.getSelfFundedDataByHsp(value);
-            if (data == null) {
+            if (data == null ||data.isEmpty()) {
                 return selfFundedDao.getSelfFundedDataByBranch(Constants.otherHospitals);
             }
             return data;
