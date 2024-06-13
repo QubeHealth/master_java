@@ -2,6 +2,15 @@ package com.master.db.model;
 
 public class PrefundedDocument {
     private String type;
+    private Integer id;
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
     private String name;
     private String link;
 
