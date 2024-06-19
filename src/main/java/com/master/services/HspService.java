@@ -112,7 +112,7 @@ public class HspService extends BaseService {
         HspDao hspDao = jdbi.onDemand(HspDao.class);
 
         Hsp hsp = hspDao.getHspbyMobile(mobile);
-        if (hsp == null) {
+        if (hsp == null || hsp.getStatus() == null || hsp.getVpa() == null) {
             return null;
         }
 
@@ -131,7 +131,7 @@ public class HspService extends BaseService {
         HspDao hspDao = jdbi.onDemand(HspDao.class);
 
         Hsp hsp = hspDao.getHspbyVpa(vpa);
-        if (hsp == null) {
+        if (hsp == null || hsp.getStatus() == null) {
             return null;
         }
 
@@ -150,7 +150,7 @@ public class HspService extends BaseService {
         HspDao hspDao = jdbi.onDemand(HspDao.class);
 
         Hsp hsp = hspDao.getHspbyBankDetails(body);
-        if (hsp == null) {
+        if (hsp == null || hsp.getStatus() == null) {
             return null;
         }
 

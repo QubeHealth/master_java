@@ -260,6 +260,8 @@ public class HspController extends BaseController {
             return response(Response.Status.FORBIDDEN, new ApiResponse<>(false, "Invalid qr format", null));
         }
 
+        
+
   
         return response(Response.Status.OK, new ApiResponse<>(true, "QR validation success", parsedQr));
 
