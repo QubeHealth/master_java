@@ -29,4 +29,7 @@ public abstract class Queries {
 
         public static final String GET_SELF_FUNDED_DOCUMENTS_BY_BRANCH = "SELECT  d.id, d.type, d.name, d.preview_link AS link FROM masters.tbl_prefunded_documents d JOIN masters.tbl_prefunded_branches b ON d.pf_branch_id = b.id WHERE d.pf_branch_id = :branchId";
 
+        public static final String INSERT_HSP_METADATA = "INSERT INTO tbl_hsp_metadata (hsp_id, partner_category, partner_sub_category, status, search_response, keyword) "
+                        +
+                        " VALUES (:hsp_id, :partner_category, :partner_sub_category, :status, :search_response, :keyword)";
 }

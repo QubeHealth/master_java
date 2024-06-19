@@ -2,6 +2,7 @@ package com.master;
 
 import org.jdbi.v3.core.Jdbi;
 
+import com.master.controller.GoogleMapsController;
 import com.master.controller.HspController;
 import com.master.controller.SelfFundedController;
 import com.master.utility.AuthFilter;
@@ -52,9 +53,11 @@ public class MasterApplication extends Application<MasterConfiguration> {
 
         HspController hspController = new HspController(configuration, validator, jdbi);
         SelfFundedController selfFundedController = new SelfFundedController(configuration, validator, jdbi);
+        GoogleMapsController googleMapsController = new GoogleMapsController(configuration, validator, jdbi);
 
         environment.jersey().register(hspController);
         environment.jersey().register(selfFundedController);
+        environment.jersey().register(googleMapsController);
     }
 
 }

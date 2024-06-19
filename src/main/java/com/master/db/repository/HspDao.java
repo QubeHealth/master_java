@@ -14,8 +14,8 @@ import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
 import com.master.core.constants.Queries;
 import com.master.core.validations.PaymentSchemas.BankSchema;
-import com.master.db.model.Hsp;
 import com.master.db.model.GetHspBrandName;
+import com.master.db.model.Hsp;
 
 public interface HspDao {
 
@@ -49,4 +49,16 @@ public interface HspDao {
     @SqlQuery(Queries.GET_HSP_BY_BANK)
     @RegisterBeanMapper(Hsp.class)
     Hsp getHspbyBankDetails(@BindBean BankSchema body);
+
+    @SqlUpdate(Queries.INSERT_HSP_METADATA)
+    @GetGeneratedKeys("id")
+    Long insertNearbySearch(@BindMap Map<String,Object> insertData);
+    // Long insertNearbySearch(
+    //     @Bind("hsp_id") Integer hspId,
+    //     @Bind("partner_category") String partnerCategory,
+    //     @Bind("partner_sub_category") String partnerSubCategory,
+    //     @Bind("status") String status,
+    //     @Bind("search_response") String searchResponse,
+    //     @Bind("keyword") String keyword
+    //     );
 }

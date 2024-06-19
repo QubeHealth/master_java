@@ -37,4 +37,20 @@ public class LinkageNwService extends BaseServiceClient {
         return this.callThirdPartyApi(url, "post", requestBody, null);
     }
 
+    public ApiResponse<Object> nearbySearch(String latitude, String longitude, String radius) {
+        String url = configuration.getLinkageUrl() + "googlemaps/nearbySearch";
+        Map<String,String> requestBody = new HashMap<>(); 
+        requestBody.put("latitude",latitude);
+        requestBody.put("longitude", longitude);
+        requestBody.put("radius", radius);
+
+        Map<String,String> tempSender = new HashMap<>(); 
+        tempSender.put("cat","whatevs1");
+        tempSender.put("subcat", "whatevs2");
+        tempSender.put("name","whatevs3" );
+
+        return new ApiResponse<>(true,"sent success", tempSender);
+        //return this.callThirdPartyApi(url, "post", requestBody, null); 
+    }
+
 }
