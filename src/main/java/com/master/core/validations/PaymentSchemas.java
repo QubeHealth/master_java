@@ -50,4 +50,11 @@ public class PaymentSchemas {
 
     }
 
+    @Data
+    public static class QrSchema {
+        @NotBlank(message = "QR cannot be empty")
+        @JsonProperty("upi_qr_url")
+        private String upiQrUrl;
+    }
+
 }

@@ -1,18 +1,25 @@
 package com.master.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jdbi.v3.core.Jdbi;
 
+import com.emv.qrcode.decoder.cpm.DecoderCpm;
+import com.emv.qrcode.decoder.mpm.DecoderMpm;
+import com.emv.qrcode.model.cpm.ConsumerPresentedMode;
+import com.emv.qrcode.model.mpm.MerchantPresentedMode;
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
 import com.master.api.InsertHspBrandName;
+import com.master.api.QrData;
 import com.master.client.LinkageNwService;
 import com.master.core.validations.HspIdSchema;
 import com.master.core.validations.SaveHspBrandName;
 import com.master.core.validations.PaymentSchemas.BankSchema;
 import com.master.core.validations.PaymentSchemas.MobileSchema;
+import com.master.core.validations.PaymentSchemas.QrSchema;
 import com.master.core.validations.PaymentSchemas.VpaSchemas;
 import com.master.db.model.Hsp;
 import com.master.services.HspService;
@@ -223,6 +230,38 @@ public class HspController extends BaseController {
         data.remove("keyword");
 
         return response(Response.Status.OK, new ApiResponse<>(true, "Bank validation success", data));
+
+    }
+
+    @POST
+    @Path("/validateQr")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response validateQr(@Context HttpServletRequest request,
+            QrSchema body) {
+
+        Set<ConstraintViolation<QrSchema>> violations = validator.validate(body);
+        if (!violations.isEmpty()) {
+            // Construct error message from violations
+            String errorMessage = violations.stream()
+                    .map(ConstraintViolation::getMessage)
+                    .reduce("", (acc, msg) -> acc.isEmpty() ? msg : acc + "; " + msg);
+            return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, errorMessage, null));
+        }
+
+        // parse the normal upi url
+        QrData parsedQr = Helper.parseUPIUrl(body.getUpiQrUrl());
+
+        if (parsedQr == null) {
+            parsedQr = Helper.parseEMVQR(body.getUpiQrUrl());
+        }
+
+        if (parsedQr == null) {
+            return response(Response.Status.FORBIDDEN, new ApiResponse<>(false, "Invalid qr format", null));
+        }
+
+  
+        return response(Response.Status.OK, new ApiResponse<>(true, "QR validation success", parsedQr));
 
     }
 }

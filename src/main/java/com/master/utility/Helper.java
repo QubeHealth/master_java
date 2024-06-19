@@ -1,6 +1,9 @@
 package com.master.utility;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -8,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -20,10 +24,21 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
+import com.emv.qrcode.decoder.mpm.DecoderMpm;
+import com.emv.qrcode.model.mpm.MerchantAccountInformationReservedAdditional;
+import com.emv.qrcode.model.mpm.MerchantPresentedMode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.master.api.QrData;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class Helper {
     private Helper() {
@@ -160,6 +175,7 @@ public final class Helper {
             return false; // If an exception is caught, URL is not valid
         }
     }
+
     public static class DataMapper {
         private DataMapper() {
         }
@@ -175,5 +191,74 @@ public final class Helper {
             }
         }
 
+    }
+
+    public static QrData parseUPIUrl(String url) {
+        try {
+
+            Map<String, String> queryParams = new HashMap<>();
+
+            // Extract query string from URL
+            String queryString = url.substring(url.indexOf('?') + 1);
+
+            // Use regex pattern to match key-value pairs
+            Pattern pattern = Pattern.compile("([^&=]+)=([^&]*)");
+            Matcher matcher = pattern.matcher(queryString);
+
+            // Decode each key-value pair and put into map
+            while (matcher.find()) {
+                String key = URLDecoder.decode(matcher.group(1), StandardCharsets.UTF_8.name());
+                String value = URLDecoder.decode(matcher.group(2), StandardCharsets.UTF_8.name());
+                queryParams.put(key, value);
+            }
+
+            System.out.println("UPI URL PARSER => " + Helper.toJsonString(queryParams));
+
+            if (queryParams.isEmpty()) {
+                return null;
+            }
+
+            // Creating the HashMap with the required key-value pairs
+            QrData data = new QrData();
+            data.setAmount(queryParams.getOrDefault("am", ""));
+            data.setMccCode(queryParams.getOrDefault("mc", ""));
+            data.setMerchantName(queryParams.getOrDefault("pn", ""));
+            data.setTransactionId(queryParams.getOrDefault("tr", ""));
+            data.setVpa(queryParams.getOrDefault("pa", ""));
+
+            return data;
+
+        } catch (Exception e) {
+            System.out.println(e);
+            return null;
+        }
+    }
+
+    public static QrData parseEMVQR(String url) {
+        try {
+
+            QrData queryParams = new QrData();
+
+            MerchantPresentedMode data = DecoderMpm.decode(url, MerchantPresentedMode.class);
+            System.out.println("EMV QR PARSER => " + Helper.toJsonString(data));
+
+            queryParams.setMccCode(data.getMerchantCategoryCode().getValue());
+
+            queryParams.setMccCode(data.getMerchantName().getValue());
+            queryParams.setVpa(
+                    data.getMerchantAccountInformation().get("26")
+                            .getTypeValue(MerchantAccountInformationReservedAdditional.class)
+                            .getPaymentNetworkSpecific().get("01").getValue());
+            queryParams.setMerchantCity(data.getMerchantCity().getValue());
+            queryParams.setMerchantPincode(data.getPostalCode().getValue());
+            queryParams.setTransactionId(data.getAdditionalDataField().getValue().getReferenceLabel().getValue());
+            queryParams.setAmount(data.getTransactionAmount().getValue());
+
+            return queryParams;
+
+        } catch (Exception e) {
+            System.out.println(e);
+            return null;
+        }
     }
 }
