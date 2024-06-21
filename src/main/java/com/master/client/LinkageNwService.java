@@ -44,13 +44,13 @@ public class LinkageNwService extends BaseServiceClient {
         requestBody.put("longitude", longitude);
         requestBody.put("radius", radius);
 
-        Map<String,String> tempSender = new HashMap<>(); 
-        tempSender.put("cat","whatevs1");
-        tempSender.put("subcat", "whatevs2");
-        tempSender.put("name","whatevs3" );
+        // Map<String,String> tempSender = new HashMap<>(); 
+        // tempSender.put("cat","whatevs1");
+        // tempSender.put("subcat", "whatevs2");
+        // tempSender.put("name","whatevs3" );
 
-        return new ApiResponse<>(true,"sent success", tempSender);
-        //return this.callThirdPartyApi(url, "post", requestBody, null); 
+        //return new ApiResponse<>(true,"sent success", requestBody);
+        return this.callThirdPartyApi(url, "post", requestBody, null); 
     }
 
 }

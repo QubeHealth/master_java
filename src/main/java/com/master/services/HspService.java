@@ -6,9 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.glassfish.jersey.message.internal.Qualified;
 import org.jdbi.v3.core.Jdbi;
-import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

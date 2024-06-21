@@ -16,6 +16,7 @@ import com.master.core.constants.Queries;
 import com.master.core.validations.PaymentSchemas.BankSchema;
 import com.master.db.model.GetHspBrandName;
 import com.master.db.model.Hsp;
+import com.master.db.model.HspNameData;
 
 public interface HspDao {
 
@@ -52,13 +53,9 @@ public interface HspDao {
 
     @SqlUpdate(Queries.INSERT_HSP_METADATA)
     @GetGeneratedKeys("id")
-    Long insertNearbySearch(@BindMap Map<String,Object> insertData);
-    // Long insertNearbySearch(
-    //     @Bind("hsp_id") Integer hspId,
-    //     @Bind("partner_category") String partnerCategory,
-    //     @Bind("partner_sub_category") String partnerSubCategory,
-    //     @Bind("status") String status,
-    //     @Bind("search_response") String searchResponse,
-    //     @Bind("keyword") String keyword
-    //     );
+    Long insertNearbySearch(@BindMap Map<String, Object> insertData);
+
+    @SqlQuery(Queries.GET_HSP_NAME)
+    @RegisterBeanMapper(HspNameData.class)
+    HspNameData getNamebyId(@Bind("id") Integer id);
 }

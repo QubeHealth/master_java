@@ -32,4 +32,7 @@ public abstract class Queries {
         public static final String INSERT_HSP_METADATA = "INSERT INTO tbl_hsp_metadata (hsp_id, partner_category, partner_sub_category, status, search_response, keyword) "
                         +
                         " VALUES (:hsp_id, :partner_category, :partner_sub_category, :status, :search_response, :keyword)";
+
+        public static final String GET_HSP_NAME = "SELECT hospital_name, hsp_official_name FROM masters.tbl_hsp " +
+                        " WHERE id = :id;";
 }

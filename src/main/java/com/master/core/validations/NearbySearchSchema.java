@@ -19,9 +19,6 @@ public class NearbySearchSchema {
     @NotBlank(message = "Longitude code is required")
     private String longitude;
 
-    @NotBlank(message = "radius is required")
-    private String radius;
-
     @NotNull(message = "Hsp Id is required")
     @JsonProperty("hsp_id")
     private Integer hspId; 
