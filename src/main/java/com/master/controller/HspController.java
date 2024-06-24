@@ -6,15 +6,13 @@ import java.util.Map;
 import java.util.Set;
 import org.jdbi.v3.core.Jdbi;
 
-import com.emv.qrcode.decoder.cpm.DecoderCpm;
-import com.emv.qrcode.decoder.mpm.DecoderMpm;
-import com.emv.qrcode.model.cpm.ConsumerPresentedMode;
-import com.emv.qrcode.model.mpm.MerchantPresentedMode;
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
 import com.master.api.InsertHspBrandName;
-import com.master.api.QrData;
+import com.master.api.QrData.QrInfo;
+import com.master.api.QrData.QrResponse;
 import com.master.client.LinkageNwService;
+import com.master.core.constants.Constants;
 import com.master.core.validations.HspIdSchema;
 import com.master.core.validations.SaveHspBrandName;
 import com.master.core.validations.PaymentSchemas.BankSchema;
@@ -24,6 +22,9 @@ import com.master.core.validations.PaymentSchemas.VpaSchemas;
 import com.master.db.model.Hsp;
 import com.master.services.HspService;
 import com.master.utility.Helper;
+import com.master.utility.sqs.ExecutionsConstants;
+import com.master.utility.sqs.Producer;
+import com.master.utility.sqs.QueueConstants;
 
 import jakarta.validation.Validator;
 import jakarta.servlet.http.HttpServletRequest;
@@ -249,18 +250,78 @@ public class HspController extends BaseController {
             return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, errorMessage, null));
         }
 
+        final Long userId = (Long) request.getAttribute("user_id");
+
         // parse the normal upi url
-        QrData parsedQr = Helper.parseUPIUrl(body.getUpiQrUrl());
+        QrInfo parsedQr = Helper.parseUPIUrl(body.getUpiQrUrl());
 
         if (parsedQr == null) {
             parsedQr = Helper.parseEMVQR(body.getUpiQrUrl());
         }
 
-        if (parsedQr == null) {
+        if (parsedQr == null || parsedQr.getVpa() == null) {
             return response(Response.Status.FORBIDDEN, new ApiResponse<>(false, "Invalid qr format", null));
         }
-  
-        return response(Response.Status.OK, new ApiResponse<>(true, "QR validation success", parsedQr));
 
+        QrResponse qrResponse = new QrResponse();
+        qrResponse.setVpa(parsedQr.getVpa());
+
+        Map<String, Object> rmqMap = new HashMap<>();
+        rmqMap.put("upi_qr_url", body.getUpiQrUrl());
+        rmqMap.put("level", null);
+        rmqMap.put("is_valid", false);
+        rmqMap.put("hsp_id", null);
+        rmqMap.put("bank_account_name", null);
+        rmqMap.put("keyword", null);
+        rmqMap.put("user_id", userId);
+
+        try {
+
+            // check if dynamic qr
+            if (parsedQr.getAmount() != null) {
+                rmqMap.put("level", Constants.QrConstants.DYNAMIC_QR);
+                Producer.addInQueue(QueueConstants.MASTER.exchange, ExecutionsConstants.SAVE_QR_DATA.key,
+                        Helper.toJsonString(rmqMap));
+
+                qrResponse.setStatus(Constants.QrConstants.DYNAMIC_QR);
+                return response(Response.Status.OK, new ApiResponse<>(true, "QR validation success", qrResponse));
+            }
+
+            // check if already exist
+            Hsp hsp = this.hspService.getHspbyQRVpa(parsedQr.getVpa());
+            if (hsp != null) {
+                rmqMap.put("level", Constants.QrConstants.DB);
+                rmqMap.put("is_valid", true);
+                rmqMap.put("hsp_id", hsp.getHspId());
+
+                qrResponse.setBankAccountName(hsp.getHspOfficialName());
+                qrResponse.setHspId(hsp.getHspId());
+                qrResponse.setMerchantName(hsp.getHspName());
+                qrResponse.setStatus(Constants.QrConstants.VALID_HSP);
+
+                return response(Response.Status.OK, new ApiResponse<>(true, "Hsp already exist", qrResponse));
+            }
+
+            if(parsedQr.getMccCode()!=null){
+                 hsp = this.hspService.getHspbyQRMcc(parsedQr.getMccCode());
+
+                 rmqMap.put("level", Constants.QrConstants.MCC_CODE);
+                 rmqMap.put("is_valid", true);
+                 rmqMap.put("hsp_id", hsp.getHspId());
+ 
+                 qrResponse.setBankAccountName(hsp.getHspOfficialName());
+                 qrResponse.setHspId(hsp.getHspId());
+                 qrResponse.setMerchantName(hsp.getHspName());
+                 qrResponse.setStatus(Constants.QrConstants.VALID_HSP);
+
+            }
+
+
+
+            return response(Response.Status.OK, new ApiResponse<>(true, "QR validation success", parsedQr));
+        } catch (Exception e) {
+            return response(Response.Status.OK, new ApiResponse<>(true, "QR validation success", parsedQr));
+
+        }
     }
 }

@@ -1,7 +1,6 @@
 package com.master.utility;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -17,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -24,19 +24,16 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
+import com.emv.qrcode.core.model.mpm.TagLengthString;
 import com.emv.qrcode.decoder.mpm.DecoderMpm;
 import com.emv.qrcode.model.mpm.MerchantAccountInformationReservedAdditional;
 import com.emv.qrcode.model.mpm.MerchantPresentedMode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.master.api.QrData;
+import com.master.api.QrData.QrInfo;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -193,7 +190,7 @@ public final class Helper {
 
     }
 
-    public static QrData parseUPIUrl(String url) {
+    public static QrInfo parseUPIUrl(String url) {
         try {
 
             Map<String, String> queryParams = new HashMap<>();
@@ -219,12 +216,12 @@ public final class Helper {
             }
 
             // Creating the HashMap with the required key-value pairs
-            QrData data = new QrData();
-            data.setAmount(queryParams.getOrDefault("am", ""));
-            data.setMccCode(queryParams.getOrDefault("mc", ""));
-            data.setMerchantName(queryParams.getOrDefault("pn", ""));
-            data.setTransactionId(queryParams.getOrDefault("tr", ""));
-            data.setVpa(queryParams.getOrDefault("pa", ""));
+            QrInfo data = new QrInfo();
+            data.setAmount(queryParams.getOrDefault("am", null));
+            data.setMccCode(queryParams.getOrDefault("mc", null));
+            data.setMerchantName(queryParams.getOrDefault("pn", null));
+            data.setTransactionId(queryParams.getOrDefault("tr", null));
+            data.setVpa(queryParams.getOrDefault("pa", null));
 
             return data;
 
@@ -234,31 +231,61 @@ public final class Helper {
         }
     }
 
-    public static QrData parseEMVQR(String url) {
+    public static QrInfo parseEMVQR(String url) {
         try {
 
-            QrData queryParams = new QrData();
+            QrInfo qrData = new QrInfo();
 
             MerchantPresentedMode data = DecoderMpm.decode(url, MerchantPresentedMode.class);
             System.out.println("EMV QR PARSER => " + Helper.toJsonString(data));
 
-            queryParams.setMccCode(data.getMerchantCategoryCode().getValue());
+            if (data != null) {
+                setQrData(data, qrData);
+            }
 
-            queryParams.setMccCode(data.getMerchantName().getValue());
-            queryParams.setVpa(
-                    data.getMerchantAccountInformation().get("26")
-                            .getTypeValue(MerchantAccountInformationReservedAdditional.class)
-                            .getPaymentNetworkSpecific().get("01").getValue());
-            queryParams.setMerchantCity(data.getMerchantCity().getValue());
-            queryParams.setMerchantPincode(data.getPostalCode().getValue());
-            queryParams.setTransactionId(data.getAdditionalDataField().getValue().getReferenceLabel().getValue());
-            queryParams.setAmount(data.getTransactionAmount().getValue());
-
-            return queryParams;
+            return qrData;
 
         } catch (Exception e) {
             System.out.println(e);
             return null;
         }
     }
+
+    private static void setQrData(MerchantPresentedMode data, QrInfo queryParams) {
+        setIfNotNull(data.getMerchantCategoryCode(), queryParams::setMccCode);
+        setIfNotNull(data.getMerchantName(), queryParams::setMerchantName);
+        setVpa(data, queryParams);
+        setIfNotNull(data.getMerchantCity(), queryParams::setMerchantCity);
+        setIfNotNull(data.getPostalCode(), queryParams::setMerchantPincode);
+        setTransactionId(data, queryParams);
+        setIfNotNull(data.getTransactionAmount(), queryParams::setAmount);
+    }
+
+    private static void setIfNotNull(TagLengthString fieldValueWrapper, Consumer<String> setter) {
+        if (fieldValueWrapper != null && fieldValueWrapper.getValue() != null) {
+            setter.accept(fieldValueWrapper.getValue());
+        }
+    }
+
+    private static void setVpa(MerchantPresentedMode data, QrInfo queryParams) {
+        if (data.getMerchantAccountInformation() != null && data.getMerchantAccountInformation().get("26") != null) {
+            MerchantAccountInformationReservedAdditional accountInfo = data.getMerchantAccountInformation()
+                    .get("26")
+                    .getTypeValue(MerchantAccountInformationReservedAdditional.class);
+            if (accountInfo != null && accountInfo.getPaymentNetworkSpecific() != null
+                    && accountInfo.getPaymentNetworkSpecific().get("01") != null
+                    && accountInfo.getPaymentNetworkSpecific().get("01").getValue() != null) {
+                queryParams.setVpa(accountInfo.getPaymentNetworkSpecific().get("01").getValue());
+            }
+        }
+    }
+
+    private static void setTransactionId(MerchantPresentedMode data, QrInfo queryParams) {
+        if (data.getAdditionalDataField() != null && data.getAdditionalDataField().getValue() != null
+                && data.getAdditionalDataField().getValue().getReferenceLabel() != null
+                && data.getAdditionalDataField().getValue().getReferenceLabel().getValue() != null) {
+            queryParams.setTransactionId(data.getAdditionalDataField().getValue().getReferenceLabel().getValue());
+        }
+    }
+
 }

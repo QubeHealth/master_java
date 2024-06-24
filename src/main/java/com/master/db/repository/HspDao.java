@@ -49,4 +49,12 @@ public interface HspDao {
     @SqlQuery(Queries.GET_HSP_BY_BANK)
     @RegisterBeanMapper(Hsp.class)
     Hsp getHspbyBankDetails(@BindBean BankSchema body);
+
+    @SqlQuery(Queries.GET_HSP_BY_QR_VPA)
+    @RegisterBeanMapper(Hsp.class)
+    Hsp getHspbyQRVpa(@Bind("vpa") String vpa);
+
+    @SqlQuery(Queries.GET_HSP_BY_QR_MCC)
+    @RegisterBeanMapper(Hsp.class)
+    Hsp getHspbyQRMcc(@Bind("mccCode") String mccCode);
 }

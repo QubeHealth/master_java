@@ -53,7 +53,7 @@ public class MasterConfiguration extends Configuration {
         this.jwtTokenSignature = jwtTokenSignature;
     }
 
-     @Valid
+    @Valid
     @NotNull
     @JsonProperty("database")
     private DataSourceFactory database = new DataSourceFactory();
@@ -72,5 +72,91 @@ public class MasterConfiguration extends Configuration {
 
     public void setLinkageJavaUrl(String linkageJavaUrl) {
         this.linkageJavaUrl = linkageJavaUrl;
+    }
+
+    public static class RabbitMqConfig {
+        @NotEmpty
+        @JsonProperty("userName")
+        private String userName;
+
+        @NotEmpty
+        @JsonProperty("password")
+        private String password;
+
+        @NotEmpty
+        @JsonProperty("virtualHost")
+        private String virtualHost;
+
+        @NotEmpty
+        @JsonProperty("hostName")
+        private String hostName;
+
+        @JsonProperty("portNumber")
+        private int portNumber;
+
+        @JsonProperty("env")
+        private String env;
+
+        public String getUserName() {
+            return userName;
+        }
+
+        public void setUserName(String userName) {
+            this.userName = userName;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getVirtualHost() {
+            return virtualHost;
+        }
+
+        public void setVirtualHost(String virtualHost) {
+            this.virtualHost = virtualHost;
+        }
+
+        public String getHostName() {
+            return hostName;
+        }
+
+        public void setHostName(String hostName) {
+            this.hostName = hostName;
+        }
+
+        public int getPortNumber() {
+            return portNumber;
+        }
+
+        public void setPortNumber(int portNumber) {
+            this.portNumber = portNumber;
+        }
+
+        public String getEnv() {
+            return env;
+        }
+
+        public void setEnv(String env) {
+            this.env = env;
+        }
+    }
+
+    @Valid
+    @NotNull
+    @JsonProperty("rabbitmq")
+    private RabbitMqConfig rabbitMqConfig = new RabbitMqConfig();
+
+    public RabbitMqConfig getRabbitMqConfig() {
+        return rabbitMqConfig;
+    }
+
+    @JsonProperty("rabbitmq")
+    public void setRabbitMqConfig(RabbitMqConfig rabbitMqConfig) {
+        this.rabbitMqConfig = rabbitMqConfig;
     }
 }

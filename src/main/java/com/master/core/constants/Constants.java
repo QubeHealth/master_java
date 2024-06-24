@@ -2,7 +2,22 @@ package com.master.core.constants;
 
 public abstract class Constants {
 
-    public static final String[] hspKeywords = {
+    public static final class QrConstants {
+
+        public static final String INVALID_QR = "INVALID_QR";
+        public static final String MCC_CODE = "MCC_CODE";
+        public static final String MERCHANT_NAME = "MERCHANT_NAME_QR";
+        public static final String BANK_ACCOUNT_NAME = "BANK_ACCOUNT_NAME";
+        public static final String DYNAMIC_QR = "DYNAMIC_QR";
+        public static final String DB = "DATABASE";
+        public static final String VALID_HSP = "VALID_HSP";
+        public static final String INVALID_HSP = "INVALID_HSP";
+    }
+
+    public static final Long OTHER_HOSPITALS = (long) 4;
+    public static final Long PARTNER_HOSPITALS = (long) 1;
+
+    public static final String[] HSP_KEYWORDS = {
             "vascular surgery",
             "vascular medicine",
             "urology",
@@ -251,7 +266,5 @@ public abstract class Constants {
             "dr ",
 
     };
-    public static final Long otherHospitals = (long) 4;
-    public static final Long partnerHospital = (long) 1;
 
 }
