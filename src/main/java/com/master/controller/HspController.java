@@ -299,24 +299,54 @@ public class HspController extends BaseController {
                 qrResponse.setMerchantName(hsp.getHspName());
                 qrResponse.setStatus(Constants.QrConstants.VALID_HSP);
 
+                Producer.addInQueue(QueueConstants.MASTER.exchange, ExecutionsConstants.SAVE_QR_DATA.key,
+                        Helper.toJsonString(rmqMap));
+
                 return response(Response.Status.OK, new ApiResponse<>(true, "Hsp already exist", qrResponse));
             }
 
-            if(parsedQr.getMccCode()!=null){
-                 hsp = this.hspService.getHspbyQRMcc(parsedQr.getMccCode());
+            if (parsedQr.getMccCode() != null) {
+                Hsp mcc = this.hspService.getHspbyQRMcc(parsedQr.getMccCode());
 
-                 rmqMap.put("level", Constants.QrConstants.MCC_CODE);
-                 rmqMap.put("is_valid", true);
-                 rmqMap.put("hsp_id", hsp.getHspId());
- 
-                 qrResponse.setBankAccountName(hsp.getHspOfficialName());
-                 qrResponse.setHspId(hsp.getHspId());
-                 qrResponse.setMerchantName(hsp.getHspName());
-                 qrResponse.setStatus(Constants.QrConstants.VALID_HSP);
+                if (mcc.getMccCode() != null) {
+
+                    Integer hspId = this.hspService.insertHspQr(parsedQr.getMerchantName(),
+                            mcc.getMccCode(), parsedQr.getVpa(), parsedQr.getMerchantName(), true);
+
+                    rmqMap.put("level", Constants.QrConstants.MCC_CODE);
+                    rmqMap.put("is_valid", true);
+                    rmqMap.put("hsp_id", hspId);
+
+                    qrResponse.setBankAccountName(parsedQr.getMerchantName());
+                    qrResponse.setHspId(hspId);
+                    qrResponse.setMerchantName(parsedQr.getMerchantName());
+                    qrResponse.setStatus(Constants.QrConstants.VALID_HSP);
+
+                    Producer.addInQueue(QueueConstants.MASTER.exchange, ExecutionsConstants.SAVE_QR_DATA.key,
+                            Helper.toJsonString(rmqMap));
+
+                    return response(Response.Status.OK, new ApiResponse<>(true, "Hsp already exist", qrResponse));
+
+                }
 
             }
 
+            // Logic for keyword check
+            Boolean isHeathCare = false;
+            String healthKeyword = null;
 
+            for (String key : Constants.HSP_KEYWORDS) {
+
+                if (parsedQr.getMerchantName().contains(key)) {
+                    isHeathCare = true;
+                    healthKeyword = key;
+                    break;
+                }
+            }
+
+            if (isHeathCare) {
+
+            }
 
             return response(Response.Status.OK, new ApiResponse<>(true, "QR validation success", parsedQr));
         } catch (Exception e) {

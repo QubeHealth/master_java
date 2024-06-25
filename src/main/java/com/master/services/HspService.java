@@ -181,4 +181,21 @@ public class HspService extends BaseService {
         return hspDao.getHspbyQRMcc(vpa);
     }
 
+    public Integer insertHspQr(String hspName, Integer mccCode, String vpa, String hspBankName, Boolean isValidHsp) {
+
+        Map<String, Object> insertMap = new HashMap<>();
+
+        insertMap.put("hospitalName", hspName);
+        insertMap.put("uuid", UUID.randomUUID());
+        insertMap.put("mcc", mccCode);
+        insertMap.put("vpa", vpa);
+        insertMap.put("bankAccountName", hspBankName);
+        insertMap.put("status", Boolean.TRUE.equals(isValidHsp) ? "VERIFIED" : "PENDING");
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        return hspDao.insertHspQr(insertMap);
+
+    }
+
 }

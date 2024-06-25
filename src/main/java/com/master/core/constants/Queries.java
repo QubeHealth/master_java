@@ -34,4 +34,7 @@ public abstract class Queries {
 
         public static final String GET_HSP_BY_QR_MCC = "SELECT mcc_code FROM masters.tbl_mcc_code WHERE mcc_code = :mccCode;";
 
+        public static final String INSERT_HSP_QR = "INSERT INTO tbl_hsp (hospital_name, uuid, mcc, vpa, hsp_official_name, status) "
+                        + " values (:hospitalName, :uuid, :mcc, :vpa, :bankAccountName, :status)";
+
 }

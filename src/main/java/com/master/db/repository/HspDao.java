@@ -57,4 +57,8 @@ public interface HspDao {
     @SqlQuery(Queries.GET_HSP_BY_QR_MCC)
     @RegisterBeanMapper(Hsp.class)
     Hsp getHspbyQRMcc(@Bind("mccCode") String mccCode);
+
+    @SqlUpdate(Queries.INSERT_HSP_QR)
+    @GetGeneratedKeys("id")
+    Integer insertHspQr(@BindMap Map<String, Object> insertData);
 }
