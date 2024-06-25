@@ -22,7 +22,7 @@ public class LinkageNwService extends BaseServiceClient {
 
     public ApiResponse<Object> validateVpa(String vpa) {
 
-        String url = configuration.getLinkageUrl() + "befisc/getVpaDetails";
+        String url = configuration.getLinkageJavaUrl() + "befisc/getVpaDetails";
         Map<String, String> requestBody = new HashMap<>();
         requestBody.put("vpa", vpa);
         return this.callThirdPartyApi(url, "post", requestBody, null);

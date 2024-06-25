@@ -1,10 +1,12 @@
 package com.master.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jdbi.v3.core.Jdbi;
+import org.json.JSONObject;
 
 import com.emv.qrcode.decoder.cpm.DecoderCpm;
 import com.emv.qrcode.decoder.mpm.DecoderMpm;
@@ -19,9 +21,12 @@ import com.master.core.validations.HspIdSchema;
 import com.master.core.validations.SaveHspBrandName;
 import com.master.core.validations.PaymentSchemas.BankSchema;
 import com.master.core.validations.PaymentSchemas.MobileSchema;
+import com.master.core.validations.PaymentSchemas.QrDataSchema;
 import com.master.core.validations.PaymentSchemas.QrSchema;
 import com.master.core.validations.PaymentSchemas.VpaSchemas;
 import com.master.db.model.Hsp;
+import com.master.db.model.HspMetadata;
+import com.master.db.model.PartnerCategory;
 import com.master.services.HspService;
 import com.master.utility.Helper;
 
@@ -259,8 +264,83 @@ public class HspController extends BaseController {
         if (parsedQr == null) {
             return response(Response.Status.FORBIDDEN, new ApiResponse<>(false, "Invalid qr format", null));
         }
-  
         return response(Response.Status.OK, new ApiResponse<>(true, "QR validation success", parsedQr));
 
+    }
+
+    @POST
+    @Path("/saveQrData")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response saveQrData(@Context HttpServletRequest request,
+            QrDataSchema body) {
+
+        // parse the normal upi url
+        QrData parsedQr = Helper.parseUPIUrl(body.getUpiQrUrl());
+
+        if (parsedQr == null) {
+            parsedQr = Helper.parseEMVQR(body.getUpiQrUrl());
+        }
+        String bankAccountName = null;
+
+        if (body.getLevel().equals("MCC_CODE") || body.getLevel().equals("MERCHANT_NAME_QR")) {
+            bankAccountName = hspService.validateOnBankAccountName(parsedQr.getVpa(), body.getHspId(),
+                    body.getBankAccountName());
+        }
+
+        Map<String, Object> sender = new HashMap<>();
+
+        sender.put("user_id", body.getUserId());
+        sender.put("hsp_id", body.getHspId());
+        sender.put("qr_url", body.getUpiQrUrl());
+        sender.put("vpa", parsedQr.getVpa());
+        sender.put("mcc_code", parsedQr.getMccCode().isBlank() ? null : parsedQr.getMccCode());
+        sender.put("merchant_name", parsedQr.getMerchantName());
+
+        sender.put("bank_account_name", bankAccountName == null ? body.getBankAccountName() : bankAccountName);
+        sender.put("keyword", body.getKeyword());
+
+        sender.put("is_valid", body.isValid());
+        sender.put("merchant_city", parsedQr.getMerchantCity());
+        sender.put("pincode", parsedQr.getMerchantPincode());
+        sender.put("level", body.getLevel());
+
+        sender.put("amount", parsedQr.getAmount());
+        sender.put("txn_id", parsedQr.getTransactionId());
+        sender.put("qr_expiry", null);
+
+        Long x = hspService.insertHspQrData(sender);
+        if (x == null) {
+            return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, "Data Addition Unsuccessful", null));
+        }
+
+        if(body.isValid()){
+
+            HspMetadata inTable = hspService.getHspMetadata(body.getHspId());
+            // if(inTable!=null){
+            //     return null;
+            // }
+
+            //partnership logic
+            // put stuff in tbl_hsp_metadata
+            // need to store partner_category and partner_sub_category
+
+            PartnerCategory partnerCategory = hspService.getPartnerCategory("partnership_category");
+            String categories = partnerCategory.getJson1();
+            JSONObject jsonObject = new JSONObject(categories);
+            Map<String,Object> categoryMap = Helper.jsonToMap(jsonObject); 
+
+            System.out.println(categoryMap);
+
+            // for (Map.Entry<String, ArrayList> entry : categoryMap) {
+            //     if (parsedQr.getMerchantName().toLowerCase().contains(entry.getValue().toString().toLowerCase())){
+            //         System.out.println("Found value '" + targetValue + "' at key: " + entry.getKey());
+            //         // Break if you only need to find the first occurrence
+            //         break;
+            //     }
+            // }
+        }
+
+        return response(Response.Status.OK, new ApiResponse<>(true, "Data inserted successfully", null));
     }
 }

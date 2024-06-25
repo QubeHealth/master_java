@@ -29,4 +29,22 @@ public abstract class Queries {
 
         public static final String GET_SELF_FUNDED_DOCUMENTS_BY_BRANCH = "SELECT  d.id, d.type, d.name, d.preview_link AS link FROM masters.tbl_prefunded_documents d JOIN masters.tbl_prefunded_branches b ON d.pf_branch_id = b.id WHERE d.pf_branch_id = :branchId";
 
+        public static final String INSERT_HSP_QR_DATA = "INSERT INTO tbl_qr_data (user_id,hsp_id,qr_url,vpa,mcc_code,merchant_name,bank_account_name,keyword,is_valid,merchant_city,pincode,level,amount,txn_id) "
+                        +
+                        " VALUES (:user_id,:hsp_id,:qr_url,:vpa,:mcc_code,:merchant_name,:bank_account_name,:keyword,:is_valid,:merchant_city,:pincode,:level,:amount,:txn_id)";
+
+        public static final String GET_HSP_BANK_NAME = "SELECT hospital_name FROM tbl_hsp WHERE id = :hspId";
+
+        public static final String UPDATE_HOSPITAL_NAME = "UPDATE tbl_hsp SET hospital_name = :hospitalName WHERE id = :hspId";
+
+        public static final String UPDATE_HSP_OFFCICIAL_NAME = "UPDATE tbl_hsp SET hsp_official_name = :hospitalOfficialName WHERE id = :hspId";
+
+        public static final String GET_HSP_METADATA = "SELECT * FROM masters.tbl_hsp_metadata " + 
+                                "WHERE hsp_id = :hspId ;";
+        
+        public static final String UPDATE_HSP_METADATA = "INSERT INTO masters.tbl_hsp_metadata (hsp_id, partner_category, partner_sub_category) " + 
+                                "VALUES(:hspId, :partnerCategory, :partnerSubCategory)";
+
+        public static final String GET_CATEGORY_MISC = " SELECT json_1 FROM masters.tbl_miscellaneous WHERE `key` = :key ";
+
 }

@@ -13,18 +13,27 @@ import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.master.MasterConfiguration;
+import com.master.api.ApiRequest;
+import com.master.api.ApiResponse;
 import com.master.api.InsertHspBrandName;
+import com.master.client.LinkageNwService;
 import com.master.core.constants.Queries;
 import com.master.core.validations.SaveHspBrandName;
 import com.master.core.validations.PaymentSchemas.BankSchema;
 import com.master.db.model.Hsp;
+import com.master.db.model.HspMetadata;
+import com.master.db.model.PartnerCategory;
 import com.master.db.model.GetHspBrandName;
 import com.master.db.repository.HspDao;
+import com.master.db.repository.MiscDao;
 
 public class HspService extends BaseService {
 
+    private LinkageNwService linkageNwService; 
+
     public HspService(MasterConfiguration configuration, Jdbi jdbi) {
         super(configuration, jdbi);
+        linkageNwService = new LinkageNwService(configuration);
     }
 
     public List<Hsp> getHspDataListByIds(List<Integer> hspIds) {
@@ -165,4 +174,37 @@ public class HspService extends BaseService {
         return data;
     }
 
+    public Long insertHspQrData(Map<String, Object> insertData) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+        return hspDao.insertHspQrData(insertData);
+    }
+
+    public String validateOnBankAccountName(String vpa,String hspId, String name){
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        hspDao.updateHospitalOfficialName(hspId,name);
+       
+        ApiResponse<Object> x = linkageNwService.validateVpa(vpa);
+        Map<String, Object> storer = new HashMap();
+        storer = (Map<String,Object>)x.getData();
+        String receivedName = storer.get("bank_account_name").toString();
+
+        String givenName = hspDao.getHspBankName(hspId);
+        if(givenName.toLowerCase().contains("merchant")){
+            hspDao.updateHospitalName(hspId, receivedName);
+        }
+        return receivedName; 
+    }
+
+    public HspMetadata getHspMetadata(String hspId){
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+        return hspDao.getHspMetaData(hspId);
+    }
+
+    public PartnerCategory getPartnerCategory(String key){
+        MiscDao miscDao = jdbi.onDemand(MiscDao.class);
+        return miscDao.getCategoryMisc(key);
+    }
 }
