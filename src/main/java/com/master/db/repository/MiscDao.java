@@ -12,8 +12,5 @@ import com.master.db.model.PrefundedInfo;
 
     @SqlQuery(Queries.GET_SELF_FUNDED_DETAILS)
     @RegisterBeanMapper(PrefundedInfo.class)
-    PrefundedInfo getSelfundedDetails(@Bind("data") String data);
-
-
-}
+    PrefundedInfo getSelfundedDetails(@Bind("data") String data);}
 
