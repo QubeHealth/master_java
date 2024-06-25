@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.checkerframework.checker.units.qual.h;
 import org.jdbi.v3.core.Jdbi;
 
 import com.master.MasterConfiguration;
@@ -317,7 +319,6 @@ public class HspController extends BaseController {
                     rmqMap.put("is_valid", true);
                     rmqMap.put("hsp_id", hspId);
 
-                    qrResponse.setBankAccountName(parsedQr.getMerchantName());
                     qrResponse.setHspId(hspId);
                     qrResponse.setMerchantName(parsedQr.getMerchantName());
                     qrResponse.setStatus(Constants.QrConstants.VALID_HSP);
@@ -331,27 +332,61 @@ public class HspController extends BaseController {
 
             }
 
-            // Logic for keyword check
-            Boolean isHeathCare = false;
-            String healthKeyword = null;
+            String hspAccName = parsedQr.getMerchantName();
+            String healthKeyword = checkHspKeyword(hspAccName);
+            Boolean validHsp = healthKeyword != null;
+            rmqMap.put("level", Constants.QrConstants.MERCHANT_NAME);
 
-            for (String key : Constants.HSP_KEYWORDS) {
+            // if not valid on merchant name get the bank acc name
+            if (Boolean.FALSE.equals(validHsp)) {
+                ApiResponse<Object> vpaRes = this.linkageNwService.validateVpaOpen(parsedQr.getVpa());
+                if (vpaRes.getStatus()) {
+                    Map<String, Object> vpaData = (Map<String, Object>) vpaRes.getData();
 
-                if (parsedQr.getMerchantName().contains(key)) {
-                    isHeathCare = true;
-                    healthKeyword = key;
-                    break;
+                    hspAccName = vpaData.get("name_as_per_bank") != null
+                            ? vpaData.get("name_as_per_bank").toString()
+                            : null;
+                    qrResponse.setBankAccountName(hspAccName);
+                    rmqMap.put("bank_account_name", hspAccName);
+                    rmqMap.put("level", Constants.QrConstants.BANK_ACCOUNT_NAME);
+
+                    if (Boolean.TRUE.equals(vpaData.get("status"))) {
+                        healthKeyword = checkHspKeyword(hspAccName);
+                        validHsp = healthKeyword != null;
+                    }
                 }
             }
 
-            if (isHeathCare) {
+            Integer hspId = this.hspService.insertHspQr(parsedQr.getMerchantName(),
+                    null, parsedQr.getVpa(), hspAccName, validHsp);
+            qrResponse.setHspId(hspId);
+            qrResponse.setStatus(Boolean.TRUE.equals(validHsp) ? Constants.QrConstants.VALID_HSP
+                    : Constants.QrConstants.INVALID_HSP);
 
-            }
+            // set data to push to sqs
+            rmqMap.put("keyword", healthKeyword);
+            rmqMap.put("is_valid", validHsp);
+            rmqMap.put("hsp_id", hspId);
+
+            Producer.addInQueue(QueueConstants.MASTER.exchange, ExecutionsConstants.SAVE_QR_DATA.key,
+                    Helper.toJsonString(rmqMap));
 
             return response(Response.Status.OK, new ApiResponse<>(true, "QR validation success", parsedQr));
         } catch (Exception e) {
-            return response(Response.Status.OK, new ApiResponse<>(true, "QR validation success", parsedQr));
+            return response(Response.Status.FORBIDDEN,
+                    new ApiResponse<>(false, "QR validation failed", e.getMessage()));
 
         }
+    }
+
+    private String checkHspKeyword(String name) {
+        String healthKeyword = null;
+        for (String key : Constants.HSP_KEYWORDS) {
+            if (name.toLowerCase().contains(key.toLowerCase())) {
+                healthKeyword = key;
+                break;
+            }
+        }
+        return healthKeyword;
     }
 }

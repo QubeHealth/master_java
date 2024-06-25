@@ -6,7 +6,7 @@ public class ExecutionsConstants {
         public static final ExecutionInfo ZOHO_UPDATE_CONTACT = new ExecutionInfo("UPDATE.ZOHO.CONTACT",
                         "To update specific contact on Zoho");
 
-        public static final ExecutionInfo SAVE_QR_DATA = new ExecutionInfo("QE.DATA",
+        public static final ExecutionInfo SAVE_QR_DATA = new ExecutionInfo("QR.DATA",
                         "Save QR data");
 
         public static class ExecutionInfo {

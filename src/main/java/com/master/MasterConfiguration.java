@@ -21,80 +21,21 @@ public class MasterConfiguration extends Configuration {
     @NotEmpty
     private String linkageJavaUrl;
 
-    public String getxApiKey() {
-        return xApiKey;
-    }
-
-    public void setxApiKey(String xApiKey) {
-        this.xApiKey = xApiKey;
-    }
-
-    public String getAuthorizationKey() {
-        return authorizationKey;
-    }
-
-    public void setAuthorizationKey(String authorizationKey) {
-        this.authorizationKey = authorizationKey;
-    }
-
-    public String getLinkageUrl() {
-        return linkageUrl;
-    }
-
-    public void setLinkageUrl(String linkageUrl) {
-        this.linkageUrl = linkageUrl;
-    }
-
-    public String getJwtTokenSignature() {
-        return jwtTokenSignature;
-    }
-
-    public void setJwtTokenSignature(String jwtTokenSignature) {
-        this.jwtTokenSignature = jwtTokenSignature;
-    }
-
-    @Valid
-    @NotNull
-    @JsonProperty("database")
-    private DataSourceFactory database = new DataSourceFactory();
-
-    public DataSourceFactory getDataSourceFactory() {
-        return database;
-    }
-
-    public void setDatabase(DataSourceFactory database) {
-        this.database = database;
-    }
-
-    public String getLinkageJavaUrl() {
-        return linkageJavaUrl;
-    }
-
-    public void setLinkageJavaUrl(String linkageJavaUrl) {
-        this.linkageJavaUrl = linkageJavaUrl;
-    }
-
     public static class RabbitMqConfig {
         @NotEmpty
-        @JsonProperty("userName")
         private String userName;
 
         @NotEmpty
-        @JsonProperty("password")
         private String password;
 
         @NotEmpty
-        @JsonProperty("virtualHost")
         private String virtualHost;
 
         @NotEmpty
-        @JsonProperty("hostName")
         private String hostName;
 
-        @JsonProperty("portNumber")
         private int portNumber;
 
-        @JsonProperty("env")
         private String env;
 
         public String getUserName() {
@@ -155,8 +96,61 @@ public class MasterConfiguration extends Configuration {
         return rabbitMqConfig;
     }
 
-    @JsonProperty("rabbitmq")
     public void setRabbitMqConfig(RabbitMqConfig rabbitMqConfig) {
         this.rabbitMqConfig = rabbitMqConfig;
     }
+
+    public String getxApiKey() {
+        return xApiKey;
+    }
+
+    public void setxApiKey(String xApiKey) {
+        this.xApiKey = xApiKey;
+    }
+
+    public String getAuthorizationKey() {
+        return authorizationKey;
+    }
+
+    public void setAuthorizationKey(String authorizationKey) {
+        this.authorizationKey = authorizationKey;
+    }
+
+    public String getLinkageUrl() {
+        return linkageUrl;
+    }
+
+    public void setLinkageUrl(String linkageUrl) {
+        this.linkageUrl = linkageUrl;
+    }
+
+    public String getJwtTokenSignature() {
+        return jwtTokenSignature;
+    }
+
+    public void setJwtTokenSignature(String jwtTokenSignature) {
+        this.jwtTokenSignature = jwtTokenSignature;
+    }
+
+    @Valid
+    @NotNull
+    @JsonProperty("database")
+    private DataSourceFactory database = new DataSourceFactory();
+
+    public DataSourceFactory getDataSourceFactory() {
+        return database;
+    }
+
+    public void setDatabase(DataSourceFactory database) {
+        this.database = database;
+    }
+
+    public String getLinkageJavaUrl() {
+        return linkageJavaUrl;
+    }
+
+    public void setLinkageJavaUrl(String linkageJavaUrl) {
+        this.linkageJavaUrl = linkageJavaUrl;
+    }
+
 }
