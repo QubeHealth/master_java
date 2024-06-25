@@ -267,6 +267,7 @@ public class HspController extends BaseController {
 
         QrResponse qrResponse = new QrResponse();
         qrResponse.setVpa(parsedQr.getVpa());
+        qrResponse.setMerchantName(parsedQr.getMerchantName());
 
         Map<String, Object> rmqMap = new HashMap<>();
         rmqMap.put("upi_qr_url", body.getUpiQrUrl());
@@ -314,7 +315,7 @@ public class HspController extends BaseController {
             if (parsedQr.getMccCode() != null) {
                 Hsp mcc = this.hspService.getHspbyQRMcc(parsedQr.getMccCode());
 
-                if (mcc.getMccCode() != null) {
+                if (mcc != null && mcc.getMccCode() != null) {
 
                     Integer hspId = this.hspService.insertHspQr(parsedQr.getMerchantName(),
                             mcc.getMccCode(), parsedQr.getVpa(), parsedQr.getMerchantName(), true);
@@ -324,7 +325,6 @@ public class HspController extends BaseController {
                     rmqMap.put("hsp_id", hspId);
 
                     qrResponse.setHspId(hspId);
-                    qrResponse.setMerchantName(parsedQr.getMerchantName());
                     qrResponse.setStatus(Constants.QrConstants.VALID_HSP);
 
                     Producer.addInQueue(QueueConstants.MASTER.exchange, ExecutionsConstants.SAVE_QR_DATA.key,
@@ -354,6 +354,8 @@ public class HspController extends BaseController {
                             : null;
 
                     qrResponse.setBankAccountName(hspAccName);
+                    qrResponse.setMerchantName(hspAccName);
+
                     rmqMap.put("bank_account_name", hspAccName);
                     rmqMap.put("level", Constants.QrConstants.BANK_ACCOUNT_NAME);
 
@@ -377,7 +379,7 @@ public class HspController extends BaseController {
             Producer.addInQueue(QueueConstants.MASTER.exchange, ExecutionsConstants.SAVE_QR_DATA.key,
                     Helper.toJsonString(rmqMap));
 
-            return response(Response.Status.OK, new ApiResponse<>(true, "QR validation success", parsedQr));
+            return response(Response.Status.OK, new ApiResponse<>(true, "QR validation success", qrResponse));
         } catch (Exception e) {
             return response(Response.Status.FORBIDDEN,
                     new ApiResponse<>(false, "QR validation failed", e.getMessage()));

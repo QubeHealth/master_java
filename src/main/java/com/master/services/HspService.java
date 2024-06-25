@@ -186,7 +186,7 @@ public class HspService extends BaseService {
         Map<String, Object> insertMap = new HashMap<>();
 
         insertMap.put("hospitalName", hspName);
-        insertMap.put("uuid", UUID.randomUUID());
+        insertMap.put("uuid", UUID.randomUUID().toString());
         insertMap.put("mcc", mccCode);
         insertMap.put("vpa", vpa);
         insertMap.put("bankAccountName", hspBankName);
