@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.checkerframework.checker.units.qual.h;
 import org.jdbi.v3.core.Jdbi;
 
 import com.master.MasterConfiguration;
@@ -257,6 +256,7 @@ public class HspController extends BaseController {
         // parse the normal upi url
         QrInfo parsedQr = Helper.parseUPIUrl(body.getUpiQrUrl());
 
+        // parse emv qr
         if (parsedQr == null) {
             parsedQr = Helper.parseEMVQR(body.getUpiQrUrl());
         }
@@ -278,28 +278,31 @@ public class HspController extends BaseController {
         rmqMap.put("user_id", userId);
 
         try {
-
             // check if dynamic qr
             if (parsedQr.getAmount() != null) {
                 rmqMap.put("level", Constants.QrConstants.DYNAMIC_QR);
+                qrResponse.setStatus(Constants.QrConstants.DYNAMIC_QR);
+
                 Producer.addInQueue(QueueConstants.MASTER.exchange, ExecutionsConstants.SAVE_QR_DATA.key,
                         Helper.toJsonString(rmqMap));
 
-                qrResponse.setStatus(Constants.QrConstants.DYNAMIC_QR);
                 return response(Response.Status.OK, new ApiResponse<>(true, "QR validation success", qrResponse));
             }
 
-            // check if already exist
+            // check if already exist in db
             Hsp hsp = this.hspService.getHspbyQRVpa(parsedQr.getVpa());
+            boolean validHsp = false;
             if (hsp != null) {
+
+                validHsp = hsp.getStatus() != null && hsp.getStatus().equals(Constants.QrConstants.VERIFIED);
                 rmqMap.put("level", Constants.QrConstants.DB);
-                rmqMap.put("is_valid", true);
+                rmqMap.put("is_valid", validHsp);
                 rmqMap.put("hsp_id", hsp.getHspId());
 
                 qrResponse.setBankAccountName(hsp.getHspOfficialName());
                 qrResponse.setHspId(hsp.getHspId());
                 qrResponse.setMerchantName(hsp.getHspName());
-                qrResponse.setStatus(Constants.QrConstants.VALID_HSP);
+                qrResponse.setStatus(validHsp ? Constants.QrConstants.VALID_HSP : Constants.QrConstants.INVALID_HSP);
 
                 Producer.addInQueue(QueueConstants.MASTER.exchange, ExecutionsConstants.SAVE_QR_DATA.key,
                         Helper.toJsonString(rmqMap));
@@ -307,6 +310,7 @@ public class HspController extends BaseController {
                 return response(Response.Status.OK, new ApiResponse<>(true, "Hsp already exist", qrResponse));
             }
 
+            // check if mcc code is valid
             if (parsedQr.getMccCode() != null) {
                 Hsp mcc = this.hspService.getHspbyQRMcc(parsedQr.getMccCode());
 
@@ -326,15 +330,17 @@ public class HspController extends BaseController {
                     Producer.addInQueue(QueueConstants.MASTER.exchange, ExecutionsConstants.SAVE_QR_DATA.key,
                             Helper.toJsonString(rmqMap));
 
-                    return response(Response.Status.OK, new ApiResponse<>(true, "Hsp already exist", qrResponse));
+                    return response(Response.Status.OK, new ApiResponse<>(true, "Qr validation success", qrResponse));
 
                 }
 
             }
 
             String hspAccName = parsedQr.getMerchantName();
+            // check if valid on merchant name
             String healthKeyword = checkHspKeyword(hspAccName);
-            Boolean validHsp = healthKeyword != null;
+            validHsp = healthKeyword != null;
+
             rmqMap.put("level", Constants.QrConstants.MERCHANT_NAME);
 
             // if not valid on merchant name get the bank acc name
@@ -346,11 +352,12 @@ public class HspController extends BaseController {
                     hspAccName = vpaData.get("name_as_per_bank") != null
                             ? vpaData.get("name_as_per_bank").toString()
                             : null;
+
                     qrResponse.setBankAccountName(hspAccName);
                     rmqMap.put("bank_account_name", hspAccName);
                     rmqMap.put("level", Constants.QrConstants.BANK_ACCOUNT_NAME);
 
-                    if (Boolean.TRUE.equals(vpaData.get("status"))) {
+                    if (vpaData.get("status").equals("success")) {
                         healthKeyword = checkHspKeyword(hspAccName);
                         validHsp = healthKeyword != null;
                     }
@@ -359,11 +366,10 @@ public class HspController extends BaseController {
 
             Integer hspId = this.hspService.insertHspQr(parsedQr.getMerchantName(),
                     null, parsedQr.getVpa(), hspAccName, validHsp);
-            qrResponse.setHspId(hspId);
-            qrResponse.setStatus(Boolean.TRUE.equals(validHsp) ? Constants.QrConstants.VALID_HSP
-                    : Constants.QrConstants.INVALID_HSP);
 
-            // set data to push to sqs
+            qrResponse.setHspId(hspId);
+            qrResponse.setStatus(validHsp ? Constants.QrConstants.VALID_HSP : Constants.QrConstants.INVALID_HSP);
+
             rmqMap.put("keyword", healthKeyword);
             rmqMap.put("is_valid", validHsp);
             rmqMap.put("hsp_id", hspId);

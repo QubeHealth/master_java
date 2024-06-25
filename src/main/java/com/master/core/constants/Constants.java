@@ -12,6 +12,8 @@ public abstract class Constants {
         public static final String DB = "DATABASE";
         public static final String VALID_HSP = "VALID_HSP";
         public static final String INVALID_HSP = "INVALID_HSP";
+        public static final String VERIFIED = "VERIFIED";
+        public static final String PENDING = "PENDING";
     }
 
     public static final Long OTHER_HOSPITALS = (long) 4;
