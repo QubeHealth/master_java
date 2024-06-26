@@ -14,7 +14,7 @@ public class LinkageNwService extends BaseServiceClient {
 
     public ApiResponse<Object> getVpaByMobile(Long mobile) {
 
-        String url = configuration.getLinkageUrl() + "befisc/getVpaByMobile";
+        String url = configuration.getLinkageJavaUrl() + "befisc/getVpaByMobile";
         Map<String, Long> requestBody = new HashMap<>();
         requestBody.put("mobile", mobile);
         return this.callThirdPartyApi(url, "post", requestBody, null);
@@ -30,7 +30,7 @@ public class LinkageNwService extends BaseServiceClient {
 
     public ApiResponse<Object> validateBankDetails(String accountNumber, String ifsc) {
 
-        String url = configuration.getLinkageUrl() + "befisc/getBankDetails";
+        String url = configuration.getLinkageJavaUrl() + "befisc/getBankDetails";
         Map<String, String> requestBody = new HashMap<>();
         requestBody.put("account_number", accountNumber);
         requestBody.put("ifsc_code", ifsc);

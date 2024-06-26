@@ -33,7 +33,7 @@ public abstract class Queries {
                         +
                         " VALUES (:user_id,:hsp_id,:qr_url,:vpa,:mcc_code,:merchant_name,:bank_account_name,:keyword,:is_valid,:merchant_city,:pincode,:level,:amount,:txn_id)";
 
-        public static final String GET_HSP_BANK_NAME = "SELECT hospital_name FROM tbl_hsp WHERE id = :hspId";
+        public static final String GET_HSP_NAME = "SELECT hospital_name as hsp_name FROM tbl_hsp WHERE id = :hspId";
 
         public static final String UPDATE_HOSPITAL_NAME = "UPDATE tbl_hsp SET hospital_name = :hospitalName WHERE id = :hspId";
 

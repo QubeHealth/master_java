@@ -26,14 +26,15 @@ import com.master.db.model.PartnerCategory;
 import com.master.db.model.GetHspBrandName;
 import com.master.db.repository.HspDao;
 import com.master.db.repository.MiscDao;
+import com.master.utility.Helper;
 
 public class HspService extends BaseService {
 
-    private LinkageNwService linkageNwService; 
+    private LinkageNwService linkageNwService;
 
     public HspService(MasterConfiguration configuration, Jdbi jdbi) {
         super(configuration, jdbi);
-        linkageNwService = new LinkageNwService(configuration);
+        this.linkageNwService = new LinkageNwService(configuration);
     }
 
     public List<Hsp> getHspDataListByIds(List<Integer> hspIds) {
@@ -180,30 +181,42 @@ public class HspService extends BaseService {
         return hspDao.insertHspQrData(insertData);
     }
 
-    public String validateOnBankAccountName(String vpa,String hspId, String name){
+    public String validateOnBankAccountName(String vpa, String hspId) {
 
         HspDao hspDao = jdbi.onDemand(HspDao.class);
 
-        hspDao.updateHospitalOfficialName(hspId,name);
-       
-        ApiResponse<Object> x = linkageNwService.validateVpa(vpa);
-        Map<String, Object> storer = new HashMap();
-        storer = (Map<String,Object>)x.getData();
-        String receivedName = storer.get("bank_account_name").toString();
+        ApiResponse<Object> vpaRes = this.linkageNwService.validateVpa(vpa);
 
-        String givenName = hspDao.getHspBankName(hspId);
-        if(givenName.toLowerCase().contains("merchant")){
-            hspDao.updateHospitalName(hspId, receivedName);
+        System.out.println("validateonBankAccoutName => " + Helper.toJsonString(vpaRes));
+
+        if (!vpaRes.getStatus()) {
+            return null;
         }
-        return receivedName; 
+
+        Map<String, Object> vpaData = (Map<String, Object>) vpaRes.getData();
+
+        String bankAccountName = vpaData.get("bank_account_name").toString();
+
+        Integer success = hspDao.updateHospitalOfficialName(hspId, bankAccountName);
+        System.out.println("update hsp bank name " + success);
+        if (success != null) {
+            Hsp hsp = hspDao.getHspName(hspId);
+
+            if (hsp.getHspName().toLowerCase().contains("merchant")) {
+                success = hspDao.updateHospitalName(hspId, bankAccountName);
+                System.out.println("update hsp name " + success);
+            }
+        }
+
+        return bankAccountName;
     }
 
-    public HspMetadata getHspMetadata(String hspId){
+    public HspMetadata getHspMetadata(String hspId) {
         HspDao hspDao = jdbi.onDemand(HspDao.class);
         return hspDao.getHspMetaData(hspId);
     }
 
-    public PartnerCategory getPartnerCategory(String key){
+    public PartnerCategory getPartnerCategory(String key) {
         MiscDao miscDao = jdbi.onDemand(MiscDao.class);
         return miscDao.getCategoryMisc(key);
     }

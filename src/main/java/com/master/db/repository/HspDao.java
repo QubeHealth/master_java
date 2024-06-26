@@ -60,9 +60,9 @@ public interface HspDao {
     @SqlUpdate(Queries.UPDATE_HOSPITAL_NAME)
     Integer updateHospitalName(@Bind("hspId") String hspId, @Bind("hospitalName") String hospitalName);
 
-    @SqlQuery(Queries.GET_HSP_BANK_NAME)
+    @SqlQuery(Queries.GET_HSP_NAME)
     @RegisterBeanMapper(Hsp.class)
-    String getHspBankName(@Bind("hspId")String hspId);
+    Hsp getHspName(@Bind("hspId")String hspId);
 
     @SqlUpdate(Queries.UPDATE_HSP_OFFCICIAL_NAME)
     Integer updateHospitalOfficialName(@Bind("hspId") String hspId, @Bind("hospitalOfficialName") String hspOfficialName);

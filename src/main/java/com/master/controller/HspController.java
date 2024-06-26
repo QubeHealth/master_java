@@ -1,6 +1,8 @@
 package com.master.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -279,63 +281,87 @@ public class HspController extends BaseController {
         String bankAccountName = null;
 
         if (body.getLevel().equals("MCC_CODE") || body.getLevel().equals("MERCHANT_NAME_QR")) {
-            bankAccountName = hspService.validateOnBankAccountName(parsedQr.getVpa(), body.getHspId(),
-                    body.getBankAccountName());
+            bankAccountName = hspService.validateOnBankAccountName(parsedQr.getVpa(), body.getHspId());
+            if (bankAccountName == null) {
+                return response(Response.Status.BAD_REQUEST,
+                        new ApiResponse<>(false, "Failed to get the bank account name", null));
+            }
         }
 
-        Map<String, Object> sender = new HashMap<>();
+        Map<String, Object> qrInsertData = new HashMap<>();
 
-        sender.put("user_id", body.getUserId());
-        sender.put("hsp_id", body.getHspId());
-        sender.put("qr_url", body.getUpiQrUrl());
-        sender.put("vpa", parsedQr.getVpa());
-        sender.put("mcc_code", parsedQr.getMccCode().isBlank() ? null : parsedQr.getMccCode());
-        sender.put("merchant_name", parsedQr.getMerchantName());
+        qrInsertData.put("user_id", body.getUserId());
+        qrInsertData.put("hsp_id", body.getHspId());
+        qrInsertData.put("qr_url", body.getUpiQrUrl());
+        qrInsertData.put("vpa", parsedQr.getVpa());
+        qrInsertData.put("mcc_code", parsedQr.getMccCode().isBlank() ? null : parsedQr.getMccCode());
+        qrInsertData.put("merchant_name", parsedQr.getMerchantName());
 
-        sender.put("bank_account_name", bankAccountName == null ? body.getBankAccountName() : bankAccountName);
-        sender.put("keyword", body.getKeyword());
+        qrInsertData.put("bank_account_name", bankAccountName == null ? body.getBankAccountName() : bankAccountName);
+        qrInsertData.put("keyword", body.getKeyword());
 
-        sender.put("is_valid", body.isValid());
-        sender.put("merchant_city", parsedQr.getMerchantCity());
-        sender.put("pincode", parsedQr.getMerchantPincode());
-        sender.put("level", body.getLevel());
+        qrInsertData.put("is_valid", body.isValid());
+        qrInsertData.put("merchant_city", parsedQr.getMerchantCity());
+        qrInsertData.put("pincode", parsedQr.getMerchantPincode());
+        qrInsertData.put("level", body.getLevel());
 
-        sender.put("amount", parsedQr.getAmount());
-        sender.put("txn_id", parsedQr.getTransactionId());
-        sender.put("qr_expiry", null);
+        qrInsertData.put("amount", parsedQr.getAmount());
+        qrInsertData.put("txn_id", parsedQr.getTransactionId());
+        qrInsertData.put("qr_expiry", null);
 
-        Long x = hspService.insertHspQrData(sender);
-        if (x == null) {
-            return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, "Data Addition Unsuccessful", null));
+        Long success = hspService.insertHspQrData(qrInsertData);
+        if (success == null) {
+            return response(Response.Status.FORBIDDEN, new ApiResponse<>(false, "Failed to save qr data", null));
         }
 
-        if(body.isValid()){
+        if (body.isValid() && bankAccountName != null) {
 
             HspMetadata inTable = hspService.getHspMetadata(body.getHspId());
-            // if(inTable!=null){
-            //     return null;
-            // }
-
-            //partnership logic
-            // put stuff in tbl_hsp_metadata
-            // need to store partner_category and partner_sub_category
+            if (inTable != null) {
+                return response(Response.Status.OK, new ApiResponse<>(true, "Data inserted successfully", null));
+            }
 
             PartnerCategory partnerCategory = hspService.getPartnerCategory("partnership_category");
-            String categories = partnerCategory.getJson1();
-            JSONObject jsonObject = new JSONObject(categories);
-            Map<String,Object> categoryMap = Helper.jsonToMap(jsonObject); 
+            JSONObject jsonObject = new JSONObject(partnerCategory.getJson1());
+            Map<String, Object> categoryMap = Helper.jsonToMap(jsonObject);
 
-            System.out.println(categoryMap);
+            Map<String, Object> insertData = extractHspCategory(categoryMap, bankAccountName);
 
-            // for (Map.Entry<String, ArrayList> entry : categoryMap) {
-            //     if (parsedQr.getMerchantName().toLowerCase().contains(entry.getValue().toString().toLowerCase())){
-            //         System.out.println("Found value '" + targetValue + "' at key: " + entry.getKey());
-            //         // Break if you only need to find the first occurrence
-            //         break;
-            //     }
-            // }
         }
 
         return response(Response.Status.OK, new ApiResponse<>(true, "Data inserted successfully", null));
+    }
+
+    private Map<String, Object> extractHspCategory(Map<String, Object> categoryMap, String bankAccountName) {
+        Map<String, Object> insertData = new HashMap<>();
+        boolean found = false;
+
+        for (Map.Entry<String, Object> primaryEntry : categoryMap.entrySet()) {
+            String primaryKey = primaryEntry.getKey();
+
+            Map<String, List<String>> secondaryMap = (Map<String, List<String>>) primaryEntry.getValue();
+
+            for (Map.Entry<String, List<String>> secondaryEntry : secondaryMap.entrySet()) {
+                String secondaryKey = secondaryEntry.getKey();
+                List<String> valuesList = secondaryEntry.getValue();
+
+                for (String key : valuesList) {
+                    if (bankAccountName.contains(key)) {
+                        insertData.put("primary_key", primaryKey);
+                        insertData.put("secondary_key", secondaryKey);
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) {
+                    break;
+                }
+            }
+            if (found) {
+                break;
+            }
+        }
+
+        return insertData;
     }
 }
