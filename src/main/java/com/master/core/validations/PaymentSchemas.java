@@ -31,7 +31,7 @@ public class PaymentSchemas {
     @Data
     public static class VpaSchemas {
         @NotBlank(message = "Please enter a valid vpa")
-        @Pattern(regexp = "^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$", message = "Enter a valid vpa")
+        @Pattern(regexp = "^[a-zA-Z0-9._--]+@[a-zA-Z0-9._-]+$", message = "Enter a valid vpa")
         @JsonProperty("vpa")
         private String vpa;
     }

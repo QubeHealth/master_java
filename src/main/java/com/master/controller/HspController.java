@@ -1,6 +1,5 @@
 package com.master.controller;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,10 +7,6 @@ import java.util.Set;
 import org.jdbi.v3.core.Jdbi;
 import org.json.JSONObject;
 
-import com.emv.qrcode.decoder.cpm.DecoderCpm;
-import com.emv.qrcode.decoder.mpm.DecoderMpm;
-import com.emv.qrcode.model.cpm.ConsumerPresentedMode;
-import com.emv.qrcode.model.mpm.MerchantPresentedMode;
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
 import com.master.api.InsertHspBrandName;
