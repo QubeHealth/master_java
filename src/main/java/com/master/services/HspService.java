@@ -12,7 +12,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.master.MasterConfiguration;
 import com.master.api.InsertHspBrandName;
-import com.master.core.constants.Queries;
 import com.master.core.validations.SaveHspBrandName;
 import com.master.core.validations.PaymentSchemas.BankSchema;
 import com.master.db.model.Hsp;

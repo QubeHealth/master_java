@@ -1,8 +1,11 @@
 package com.master.services;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import org.jdbi.v3.core.Jdbi;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.master.MasterConfiguration;
@@ -18,6 +21,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+//Fields to pick up are address components 
+
 public class GoogleMapsService extends BaseService {
 
     private LinkageNwService linkageNwService;
@@ -27,58 +32,13 @@ public class GoogleMapsService extends BaseService {
         this.linkageNwService = new LinkageNwService(configuration);
     }
 
-    public Long getTextSearch(Map<String, Object> get) {
+    // Method to add the results of the search to the table hsp
+    public Long getTextSearch(Map<String, Object> textSearchResult) {
         HspDao hspDao = jdbi.onDemand(HspDao.class);
-        return hspDao.insertTextSearch(get);
+        return hspDao.insertTextSearch(textSearchResult);
     }
 
-    public String headCall(String latitude, String longitude, String keyword) {
-        // So first step is to get the lat, long, radius. With this, make the first
-        // linkage call and do the validations
-        ApiResponse<Object> nearRes = this.linkageNwService.textSearch((latitude),
-                longitude, "25", keyword);
-
-        if ((Helper.toJsonString(nearRes.getData()) == null)) {
-            // Here the call to the second case
-            return secondCall(latitude, longitude, keyword);
-        }
-        return Helper.toJsonString(nearRes.getData());
-
-    }
-
-    public String secondCall(String latitude, String longitude, String keyword) {
-        ApiResponse<Object> nearRes = this.linkageNwService.textSearch((latitude),
-                longitude, "25", keyword);
-        if ((Helper.toJsonString(nearRes.getData()) == null)) {
-            return thirdCall(latitude, longitude, keyword);
-
-        }
-        return Helper.toJsonString(nearRes.getData());
-
-    }
-
-    public String thirdCall(String latitude, String longitude, String keyword) {
-        ApiResponse<Object> nearRes = this.linkageNwService.textSearch((latitude),
-                longitude, "25", keyword);
-        if ((Helper.toJsonString(nearRes.getData()) == null)) {
-            // Here the call to the second case
-            return fourthCall(latitude, longitude, keyword);
-
-        }
-        return Helper.toJsonString(nearRes.getData());
-    }
-
-    public String fourthCall(String latitude, String longitude, String keyword) {
-        ApiResponse<Object> nearRes = this.linkageNwService.textSearch((latitude),
-                longitude, "25", keyword);
-        if ((Helper.toJsonString(nearRes.getData()) == null)) {
-            // Here the call to the second case
-            return (null);
-        }
-        return Helper.toJsonString(nearRes.getData());
-    }
-
-    // Service for an analysis on the name of the
+    // Service for an analysis on the name of the place returned
     public String nameAnalysis(String response, int id) throws IOException {
         HspDao hspDao = jdbi.onDemand(HspDao.class);
         HspNameData names = hspDao.getNamebyId(id);
@@ -114,4 +74,106 @@ public class GoogleMapsService extends BaseService {
         }
         return null;
     }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> textSearchResponse(String latitude, String longitude, String keyword) {
+        ApiResponse<Object> responseFromLinkageId = linkageNwService.textSearchId(latitude, longitude, "25", keyword);
+        Map<String, Object> dataId = new HashMap();
+        dataId = (Map<String, Object>) responseFromLinkageId.getData();
+        System.out.println(dataId);
+        if (dataId.isEmpty()) {
+            return null;
+        }
+        ApiResponse<Object> responseFromLinkage = linkageNwService.textSearch(latitude, longitude, "25", keyword);
+        Map<String, Object> data = new HashMap();
+        data = (Map<String, Object>) responseFromLinkage.getData();
+        System.out.println(data);
+
+        // Now send for analysis
+
+        JSONObject jsonObject = new JSONObject(data.toString());
+        JSONArray placesArray = jsonObject.getJSONArray("places");
+
+        List<Map<String, Object>> placesList = new ArrayList<>();
+
+        for (int i = 0; i < placesArray.length(); i++) {
+            JSONObject placeObject = placesArray.getJSONObject(i);
+            Map<String, Object> placeMap = new HashMap<>();
+
+            placeMap.put("types", Helper.jsonArrayToList(placeObject.getJSONArray("types")));
+            placeMap.put("nationalPhoneNumber", placeObject.getString("nationalPhoneNumber"));
+            placeMap.put("formattedAddress", placeObject.getString("formattedAddress"));
+            placeMap.put("addressComponents", extractAddressComponents(placeObject.getJSONArray("addressComponents")));
+            placeMap.put("location", extractLocation(placeObject.getJSONObject("location")));
+            placeMap.put("websiteUri", placeObject.getString("websiteUri"));
+            placeMap.put("displayName", extractText(placeObject.getJSONObject("displayName")));
+            placeMap.put("primaryTypeDisplayName", extractText(placeObject.getJSONObject("primaryTypeDisplayName")));
+
+            placesList.add(placeMap);
+        }
+        analyzeDataCountry(placesList);
+        Map<String, Object> cleanedData = new HashMap<>();
+        cleanedData = cleandata(placesList);
+        return cleanedData;
+
+    }
+
+    @SuppressWarnings("unchecked")
+    private void analyzeDataCountry(List<Map<String, Object>> googleResponse) {
+        // This is for checking which countries the responses are from 
+
+        for (int i = 0; i < googleResponse.size(); i++) {
+            Map<String, Object> singlePlaceMap = googleResponse.get(i);
+                @SuppressWarnings("rawtypes")
+                Map<String, Object> addressComponents = new HashMap();
+                addressComponents = (Map<String, Object>) singlePlaceMap.get("addressComponents");
+                if (!addressComponents.get("country").equals("India")) {
+                    googleResponse.remove(i);
+                }
+           
+
+                
+
+        }
+    }
+
+    private Map<String, Object> extractAddressComponents(JSONArray jsonArray) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        Map<String, Object> particularComponent = new HashMap();
+        for (int i = 0; i < jsonArray.length(); i++) {
+
+            JSONObject addressObject = jsonArray.getJSONObject(i);
+            particularComponent.put(addressObject.getJSONArray("types").get(0).toString(),
+                    addressObject.getString("longText"));
+        }
+        return particularComponent;
+    }
+
+    private Map<String, Double> extractLocation(JSONObject jsonObject) {
+        Map<String, Double> locationMap = new HashMap<>();
+        locationMap.put("latitude", jsonObject.getDouble("latitude"));
+        locationMap.put("longitude", jsonObject.getDouble("longitude"));
+        return locationMap;
+    }
+
+    private Map<String, String> extractText(JSONObject jsonObject) {
+        Map<String, String> textMap = new HashMap<>();
+        textMap.put("text", jsonObject.getString("text"));
+        textMap.put("languageCode", jsonObject.getString("languageCode"));
+        return textMap;
+    }
+
+    private Map<String, Object> cleandata(List<Map<String, Object>> googleResponse){
+        Map<String, Object> data = new HashMap<>();
+        data.put("name", googleResponse.get(6));
+        data.put("address", googleResponse.get(2));
+        data.put("state",googleResponse.get(3).get("administrative_area_level_1"));
+        data.put("state",googleResponse.get(3).get("administrative_area_level_3"));
+        data.put("state",googleResponse.get(3).get("postal_code"));
+        data.put("mobile_number", googleResponse.get(1));
+        data.put("website", googleResponse.get(5));
+
+        return data;
+    }
+
 }

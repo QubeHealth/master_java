@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import org.jdbi.v3.core.Jdbi;
 
+import com.google.protobuf.Api;
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
 import com.master.client.LinkageNwService;
@@ -104,31 +105,31 @@ public class GoogleMapsController extends BaseController {
             return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, errorMessage, null));
         }
 
-        // Here make the call to the head.
-        String response = this.googleMapsService.headCall(body.getLatitude(), body.getLongitude(), body.getKeyword());
+        Map<String, Object> data = new HashMap<>();
+        data = this.googleMapsService.textSearchResponse(body.getLatitude(), body.getLongitude(), body.getKeyword());
 
-        if (response == null) {
+        if (data == null) {
         Map<String, Object> sender = new HashMap<>();
         sender.put("hsp_id", body.getHspId());
-        sender.put("search_response", response);
+        sender.put("search_response", null);
         sender.put("partner_category", null);
         sender.put("partner_sub_category", null);
         sender.put("keyword", "");
         sender.put("status", "NON_PARTNERED");
         this.googleMapsService.getTextSearch(sender);
-        return response(Response.Status.OK, new ApiResponse<String>(false, "Data not found", response));
+        return response(Response.Status.ACCEPTED, new ApiResponse<Object>(false, "Records Not Found", null));
         }
 
         //String can then be analysed for the search results
         Map<String, Object> sender = new HashMap<>();
         sender.put("hsp_id", body.getHspId());
-        sender.put("search_response", response);
+        sender.put("search_response", data);
         sender.put("partner_category", null);
         sender.put("partner_sub_category", null);
         sender.put("keyword", "");
         sender.put("status", "NON_PARTNERED");
         this.googleMapsService.getTextSearch(sender);
-        return response(Response.Status.OK, new ApiResponse<String>(true, "Data found", response));
+        return response(Response.Status.ACCEPTED, new ApiResponse<Object>(true, "Records Found", data));
 
     }
 }

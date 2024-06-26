@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,8 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -176,4 +179,14 @@ public final class Helper {
         }
 
     }
+
+    public static List<String> jsonArrayToList(JSONArray jsonArray) {
+        List<String> list = new ArrayList<>();
+        for (int i = 0; i < jsonArray.length(); i++) {
+            list.add(jsonArray.getString(i));
+        }
+        return list;
+    }
+
+
 }
