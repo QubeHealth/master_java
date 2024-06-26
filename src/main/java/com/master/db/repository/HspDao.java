@@ -53,7 +53,7 @@ public interface HspDao {
 
     @SqlUpdate(Queries.INSERT_HSP_METADATA)
     @GetGeneratedKeys("id")
-    Long insertNearbySearch(@BindMap Map<String, Object> insertData);
+    Long insertTextSearch(@BindMap Map<String, Object> insertData);
 
     @SqlQuery(Queries.GET_HSP_NAME)
     @RegisterBeanMapper(HspNameData.class)

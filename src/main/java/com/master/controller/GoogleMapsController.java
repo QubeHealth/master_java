@@ -8,7 +8,7 @@ import org.jdbi.v3.core.Jdbi;
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
 import com.master.client.LinkageNwService;
-import com.master.core.validations.NearbySearchSchema;
+import com.master.core.validations.TextSearchSchema;
 import com.master.services.GoogleMapsService;
 import com.master.utility.Helper;
 
@@ -45,11 +45,11 @@ public class GoogleMapsController extends BaseController {
     @Path("/getMapsResponse")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getMapsResponse(@Context HttpServletRequest request, NearbySearchSchema body) {
+    public Response getMapsResponse(@Context HttpServletRequest request, TextSearchSchema body) {
 
         // Schema validation
 
-        Set<ConstraintViolation<NearbySearchSchema>> violations = validator.validate(body);
+        Set<ConstraintViolation<TextSearchSchema>> violations = validator.validate(body);
         if (!violations.isEmpty()) {
             // Construct error message from violations
             String errorMessage = violations.stream()
@@ -60,8 +60,8 @@ public class GoogleMapsController extends BaseController {
 
         // Making the call to the linkage service and saving the data response to the
         // nearRes object
-        ApiResponse<Object> nearRes = this.linkageNwService.nearbySearch((body.getLatitude()),
-                body.getLongitude(), "25");
+        ApiResponse<Object> nearRes = this.linkageNwService.textSearch((body.getLatitude()),
+                body.getLongitude(), "25",body.getKeyword());
 
         // Logging the response from the service
         System.out.println(Helper.toJsonString(nearRes));
@@ -81,7 +81,7 @@ public class GoogleMapsController extends BaseController {
         // sender.put("keyword", "");
         // sender.put("status", "NON_PARTNERED");
 
-        Long g = this.googleMapsService.getNearbySearch(sender);
+        Long g = this.googleMapsService.getTextSearch(sender);
         if (g != null) {
             return response(Response.Status.OK, new ApiResponse<String>(true, "", "Data addition success"));
         } else
@@ -92,10 +92,10 @@ public class GoogleMapsController extends BaseController {
     @Path("/adressFinder")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response mapListControl(@Context HttpServletRequest request, NearbySearchSchema body) {
+    public Response mapListControl(@Context HttpServletRequest request, TextSearchSchema body) {
 
         // Here you validate the lat, long and radius
-        Set<ConstraintViolation<NearbySearchSchema>> violations = validator.validate(body);
+        Set<ConstraintViolation<TextSearchSchema>> violations = validator.validate(body);
         if (!violations.isEmpty()) {
             // Construct error message from violations
             String errorMessage = violations.stream()
@@ -105,7 +105,7 @@ public class GoogleMapsController extends BaseController {
         }
 
         // Here make the call to the head.
-        String response = this.googleMapsService.headCall(body.getLatitude(), body.getLongitude());
+        String response = this.googleMapsService.headCall(body.getLatitude(), body.getLongitude(), body.getKeyword());
 
         if (response == null) {
         Map<String, Object> sender = new HashMap<>();
@@ -115,7 +115,7 @@ public class GoogleMapsController extends BaseController {
         sender.put("partner_sub_category", null);
         sender.put("keyword", "");
         sender.put("status", "NON_PARTNERED");
-        this.googleMapsService.getNearbySearch(sender);
+        this.googleMapsService.getTextSearch(sender);
         return response(Response.Status.OK, new ApiResponse<String>(false, "Data not found", response));
         }
 
@@ -127,7 +127,7 @@ public class GoogleMapsController extends BaseController {
         sender.put("partner_sub_category", null);
         sender.put("keyword", "");
         sender.put("status", "NON_PARTNERED");
-        this.googleMapsService.getNearbySearch(sender);
+        this.googleMapsService.getTextSearch(sender);
         return response(Response.Status.OK, new ApiResponse<String>(true, "Data found", response));
 
     }

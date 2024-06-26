@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class NearbySearchSchema {
+public class TextSearchSchema {
     
     @NotBlank(message = "Latitude is required")
     private String latitude;
@@ -23,6 +23,7 @@ public class NearbySearchSchema {
     @JsonProperty("hsp_id")
     private Integer hspId; 
 
+    @NotBlank(message = "Keyword is required")
     private String keyword;
 
 }
