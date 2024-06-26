@@ -53,6 +53,18 @@ public interface HspDao {
     @RegisterBeanMapper(Hsp.class)
     Hsp getHspbyBankDetails(@BindBean BankSchema body);
 
+    @SqlQuery(Queries.GET_HSP_BY_QR_VPA)
+    @RegisterBeanMapper(Hsp.class)
+    Hsp getHspbyQRVpa(@Bind("vpa") String vpa);
+
+    @SqlQuery(Queries.GET_HSP_BY_QR_MCC)
+    @RegisterBeanMapper(Hsp.class)
+    Hsp getHspbyQRMcc(@Bind("mccCode") String mccCode);
+
+    @SqlUpdate(Queries.INSERT_HSP_QR)
+    @GetGeneratedKeys("id")
+    Integer insertHspQr(@BindMap Map<String, Object> insertData);
+
     @SqlUpdate(Queries.INSERT_HSP_QR_DATA)
     @GetGeneratedKeys("id")
     Long insertHspQrData(@BindMap Map<String, Object> insertData);

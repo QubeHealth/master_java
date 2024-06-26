@@ -29,6 +29,14 @@ public abstract class Queries {
 
         public static final String GET_SELF_FUNDED_DOCUMENTS_BY_BRANCH = "SELECT  d.id, d.type, d.name, d.preview_link AS link FROM masters.tbl_prefunded_documents d JOIN masters.tbl_prefunded_branches b ON d.pf_branch_id = b.id WHERE d.pf_branch_id = :branchId";
 
+        public static final String GET_HSP_BY_QR_VPA = "SELECT h.id as hsp_id, h.hospital_name as hsp_name, h.hsp_official_name, h.vpa, h.status, qr.level "
+                        + " FROM tbl_hsp h LEFT JOIN tbl_qr_data qr ON qr.hsp_id = h.id WHERE h.vpa = :vpa ORDER BY h.id DESC LIMIT 1";
+
+        public static final String GET_HSP_BY_QR_MCC = "SELECT mcc_code FROM masters.tbl_mcc_code WHERE mcc_code = :mccCode;";
+
+        public static final String INSERT_HSP_QR = "INSERT INTO tbl_hsp (hospital_name, uuid, mcc, vpa, hsp_official_name, status) "
+                        + " values (:hospitalName, :uuid, :mcc, :vpa, :bankAccountName, :status)";
+
         public static final String INSERT_HSP_QR_DATA = "INSERT INTO tbl_qr_data (user_id,hsp_id,qr_url,vpa,mcc_code,merchant_name,bank_account_name,keyword,is_valid,merchant_city,pincode,level,amount,txn_id) "
                         +
                         " VALUES (:user_id,:hsp_id,:qr_url,:vpa,:mcc_code,:merchant_name,:bank_account_name,:keyword,:is_valid,:merchant_city,:pincode,:level,:amount,:txn_id)";

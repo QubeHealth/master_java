@@ -6,6 +6,7 @@ import com.master.controller.HspController;
 import com.master.controller.SelfFundedController;
 import com.master.utility.AuthFilter;
 import com.master.utility.JwtAuthenticationFilter;
+import com.master.utility.sqs.QueueConnection;
 
 import io.dropwizard.core.Application;
 import io.dropwizard.core.setup.Bootstrap;
@@ -52,9 +53,13 @@ public class MasterApplication extends Application<MasterConfiguration> {
 
         HspController hspController = new HspController(configuration, validator, jdbi);
         SelfFundedController selfFundedController = new SelfFundedController(configuration, validator, jdbi);
+        QueueConnection queueConnection = new QueueConnection(configuration);
+
 
         environment.jersey().register(hspController);
         environment.jersey().register(selfFundedController);
+        environment.jersey().register(queueConnection);
+
     }
 
 }
