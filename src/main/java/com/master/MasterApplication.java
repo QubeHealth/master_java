@@ -53,11 +53,11 @@ public class MasterApplication extends Application<MasterConfiguration> {
 
         HspController hspController = new HspController(configuration, validator, jdbi);
         SelfFundedController selfFundedController = new SelfFundedController(configuration, validator, jdbi);
-        PartnershipController categoryController = new PartnershipController(configuration, validator, jdbi);
+        PartnershipController partnershipController= new PartnershipController(configuration, validator, jdbi);
 
         environment.jersey().register(hspController);
         environment.jersey().register(selfFundedController);
-        environment.jersey().register(categoryController);
+        environment.jersey().register(partnershipController);
     }
 
 }

@@ -36,7 +36,7 @@ public class PartnershipController extends BaseController {
     }
 
     @POST
-    @Path("/catlist")
+    @Path("/categoryList")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getcatlist() {
@@ -84,8 +84,8 @@ public class PartnershipController extends BaseController {
         Integer data=this.partnershipService.saveHospitalDetails(reqBody);
         if (data == null) {
             return response(Response.Status.NOT_FOUND,
-                    new ApiResponse<>(false, "No hospital details found", null));
+                    new ApiResponse<>(false, "Couldn't save data", null));
         }
-        return response(Response.Status.OK, new ApiResponse<>(true, "Hospital details fetch success", data));
+        return response(Response.Status.OK, new ApiResponse<>(true, "Save data success", data));
     }
     }
