@@ -40,13 +40,13 @@ public class SelfFundedService extends BaseService {
         }
     }
 
-    public  List< PrefundedDocument> getSelfFundedDocumentsForScanned(Long value) {
+    public List<PrefundedDocument> getSelfFundedDocumentsForScanned(Long value) {
         try {
             SelfFundedDao selfFundedDao = jdbi.onDemand(SelfFundedDao.class);
 
-           List< PrefundedDocument> data = selfFundedDao.getSelfFundedDataByHsp(value);
-            if (data == null ||data.isEmpty()) {
-                return selfFundedDao.getSelfFundedDataByBranch(Constants.otherHospitals);
+            List<PrefundedDocument> data = selfFundedDao.getSelfFundedDataByHsp(value);
+            if (data == null || data.isEmpty()) {
+                return selfFundedDao.getSelfFundedDataByBranch(Constants.OTHER_HOSPITALS);
             }
             return data;
 
@@ -56,7 +56,7 @@ public class SelfFundedService extends BaseService {
         }
     }
 
-    public  List<PrefundedDocument> getSelfFundedDocumentsByBranch(Long value) {
+    public List<PrefundedDocument> getSelfFundedDocumentsByBranch(Long value) {
         try {
             SelfFundedDao selfFundedDao = jdbi.onDemand(SelfFundedDao.class);
             return selfFundedDao.getSelfFundedDataByBranch(value);

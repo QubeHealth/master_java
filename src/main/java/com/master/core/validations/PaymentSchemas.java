@@ -30,7 +30,7 @@ public class PaymentSchemas {
     @Data
     public static class VpaSchemas {
         @NotBlank(message = "Please enter a valid vpa")
-        @Pattern(regexp = "^[a-zA-Z0-9._]+@[a-zA-Z0-9.-]+$", message = "Enter a valid vpa")
+        @Pattern(regexp = "^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+$", message = "Enter a valid vpa")
         @JsonProperty("vpa")
         private String vpa;
     }
@@ -48,6 +48,13 @@ public class PaymentSchemas {
         @JsonProperty("ifsc_code")
         private String ifscCode;
 
+    }
+
+    @Data
+    public static class QrSchema {
+        @NotBlank(message = "QR cannot be empty")
+        @JsonProperty("upi_qr_url")
+        private String upiQrUrl;
     }
 
 }

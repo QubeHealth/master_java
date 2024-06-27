@@ -1,22 +1,31 @@
 package com.master.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.jdbi.v3.core.Jdbi;
 
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
 import com.master.api.InsertHspBrandName;
+import com.master.api.QrData.QrInfo;
+import com.master.api.QrData.QrResponse;
 import com.master.client.LinkageNwService;
+import com.master.core.constants.Constants;
 import com.master.core.validations.HspIdSchema;
 import com.master.core.validations.SaveHspBrandName;
 import com.master.core.validations.PaymentSchemas.BankSchema;
 import com.master.core.validations.PaymentSchemas.MobileSchema;
+import com.master.core.validations.PaymentSchemas.QrSchema;
 import com.master.core.validations.PaymentSchemas.VpaSchemas;
 import com.master.db.model.Hsp;
 import com.master.services.HspService;
 import com.master.utility.Helper;
+import com.master.utility.sqs.ExecutionsConstants;
+import com.master.utility.sqs.Producer;
+import com.master.utility.sqs.QueueConstants;
 
 import jakarta.validation.Validator;
 import jakarta.servlet.http.HttpServletRequest;
@@ -224,5 +233,168 @@ public class HspController extends BaseController {
 
         return response(Response.Status.OK, new ApiResponse<>(true, "Bank validation success", data));
 
+    }
+
+    @POST
+    @Path("/validateQr")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response validateQr(@Context HttpServletRequest request,
+            QrSchema body) {
+
+        Set<ConstraintViolation<QrSchema>> violations = validator.validate(body);
+        if (!violations.isEmpty()) {
+            // Construct error message from violations
+            String errorMessage = violations.stream()
+                    .map(ConstraintViolation::getMessage)
+                    .reduce("", (acc, msg) -> acc.isEmpty() ? msg : acc + "; " + msg);
+            return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, errorMessage, null));
+        }
+
+        final Long userId = (Long) request.getAttribute("user_id");
+
+        // parse the normal upi url
+        QrInfo parsedQr = Helper.parseUPIUrl(body.getUpiQrUrl());
+
+        // parse emv qr
+        if (parsedQr == null) {
+            parsedQr = Helper.parseEMVQR(body.getUpiQrUrl());
+        }
+
+        if (parsedQr == null || parsedQr.getVpa() == null) {
+            return response(Response.Status.FORBIDDEN, new ApiResponse<>(false, "Invalid qr format", null));
+        }
+
+        QrResponse qrResponse = new QrResponse();
+        qrResponse.setVpa(parsedQr.getVpa());
+        qrResponse.setMerchantName(parsedQr.getMerchantName());
+
+        Map<String, Object> rmqMap = new HashMap<>();
+        rmqMap.put("upi_qr_url", body.getUpiQrUrl());
+        rmqMap.put("level", null);
+        rmqMap.put("is_valid", false);
+        rmqMap.put("hsp_id", null);
+        rmqMap.put("bank_account_name", null);
+        rmqMap.put("keyword", null);
+        rmqMap.put("user_id", userId);
+
+        try {
+            // check if dynamic qr
+            if (parsedQr.getAmount() != null) {
+                rmqMap.put("level", Constants.QrConstants.DYNAMIC_QR);
+                qrResponse.setStatus(Constants.QrConstants.DYNAMIC_QR);
+
+                Producer.addInQueue(QueueConstants.MASTER.exchange, ExecutionsConstants.SAVE_QR_DATA.key,
+                        Helper.toJsonString(rmqMap));
+
+                return response(Response.Status.OK, new ApiResponse<>(true, "QR validation success", qrResponse));
+            }
+
+            // check if already exist in db
+            Hsp hsp = this.hspService.getHspbyQRVpa(parsedQr.getVpa());
+            boolean validHsp = false;
+            if (hsp != null) {
+
+                validHsp = hsp.getStatus() != null && hsp.getStatus().equals(Constants.QrConstants.VERIFIED);
+                rmqMap.put("level", Constants.QrConstants.DB);
+                rmqMap.put("is_valid", validHsp);
+                rmqMap.put("hsp_id", hsp.getHspId());
+
+                qrResponse.setBankAccountName(hsp.getHspOfficialName());
+                qrResponse.setHspId(hsp.getHspId());
+                qrResponse.setMerchantName(hsp.getHspName());
+                qrResponse.setStatus(validHsp ? Constants.QrConstants.VALID_HSP : Constants.QrConstants.INVALID_HSP);
+
+                Producer.addInQueue(QueueConstants.MASTER.exchange, ExecutionsConstants.SAVE_QR_DATA.key,
+                        Helper.toJsonString(rmqMap));
+
+                return response(Response.Status.OK, new ApiResponse<>(true, "Hsp already exist", qrResponse));
+            }
+
+            // check if mcc code is valid
+            if (parsedQr.getMccCode() != null) {
+                Hsp mcc = this.hspService.getHspbyQRMcc(parsedQr.getMccCode());
+
+                if (mcc != null && mcc.getMccCode() != null) {
+
+                    Integer hspId = this.hspService.insertHspQr(parsedQr.getMerchantName(),
+                            mcc.getMccCode(), parsedQr.getVpa(), parsedQr.getMerchantName(), true);
+
+                    rmqMap.put("level", Constants.QrConstants.MCC_CODE);
+                    rmqMap.put("is_valid", true);
+                    rmqMap.put("hsp_id", hspId);
+
+                    qrResponse.setHspId(hspId);
+                    qrResponse.setStatus(Constants.QrConstants.VALID_HSP);
+
+                    Producer.addInQueue(QueueConstants.MASTER.exchange, ExecutionsConstants.SAVE_QR_DATA.key,
+                            Helper.toJsonString(rmqMap));
+
+                    return response(Response.Status.OK, new ApiResponse<>(true, "Qr validation success", qrResponse));
+
+                }
+
+            }
+
+            String hspAccName = parsedQr.getMerchantName();
+            // check if valid on merchant name
+            String healthKeyword = checkHspKeyword(hspAccName);
+            validHsp = healthKeyword != null;
+
+            rmqMap.put("level", Constants.QrConstants.MERCHANT_NAME);
+
+            // if not valid on merchant name get the bank acc name
+            if (Boolean.FALSE.equals(validHsp)) {
+                ApiResponse<Object> vpaRes = this.linkageNwService.validateVpaOpen(parsedQr.getVpa());
+                if (vpaRes.getStatus()) {
+                    Map<String, Object> vpaData = (Map<String, Object>) vpaRes.getData();
+
+                    hspAccName = vpaData.get("name_as_per_bank") != null
+                            ? vpaData.get("name_as_per_bank").toString()
+                            : null;
+
+                    qrResponse.setBankAccountName(hspAccName);
+                    qrResponse.setMerchantName(hspAccName);
+
+                    rmqMap.put("bank_account_name", hspAccName);
+                    rmqMap.put("level", Constants.QrConstants.BANK_ACCOUNT_NAME);
+
+                    if (vpaData.get("status").equals("success")) {
+                        healthKeyword = checkHspKeyword(hspAccName);
+                        validHsp = healthKeyword != null;
+                    }
+                }
+            }
+
+            Integer hspId = this.hspService.insertHspQr(parsedQr.getMerchantName(),
+                    null, parsedQr.getVpa(), hspAccName, validHsp);
+
+            qrResponse.setHspId(hspId);
+            qrResponse.setStatus(validHsp ? Constants.QrConstants.VALID_HSP : Constants.QrConstants.INVALID_HSP);
+
+            rmqMap.put("keyword", healthKeyword);
+            rmqMap.put("is_valid", validHsp);
+            rmqMap.put("hsp_id", hspId);
+
+            Producer.addInQueue(QueueConstants.MASTER.exchange, ExecutionsConstants.SAVE_QR_DATA.key,
+                    Helper.toJsonString(rmqMap));
+
+            return response(Response.Status.OK, new ApiResponse<>(true, "QR validation success", qrResponse));
+        } catch (Exception e) {
+            return response(Response.Status.FORBIDDEN,
+                    new ApiResponse<>(false, "QR validation failed", e.getMessage()));
+
+        }
+    }
+
+    private String checkHspKeyword(String name) {
+        String healthKeyword = null;
+        for (String key : Constants.HSP_KEYWORDS) {
+            if (name.toLowerCase().contains(key.toLowerCase())) {
+                healthKeyword = key;
+                break;
+            }
+        }
+        return healthKeyword;
     }
 }
