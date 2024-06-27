@@ -84,6 +84,6 @@ public interface HspDao {
     HspMetadata getHspMetaData(@Bind("hspId") String hspId);
 
     @SqlUpdate(Queries.UPDATE_HSP_METADATA)
-    Integer updateHospitalOfficialName(@Bind("hspId") String hspId, @Bind("partnerCategory") String partnerCategory, @Bind("partnerSubCategory") String partnerSubCategory);
+    Integer updateHspMetadata(@Bind("hspId") String hspId, @Bind("partnerCategory") String partnerCategory, @Bind("partnerSubCategory") String partnerSubCategory, @Bind("keyword") String keyword);
 
 }

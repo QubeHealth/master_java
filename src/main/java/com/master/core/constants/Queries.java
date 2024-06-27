@@ -50,8 +50,8 @@ public abstract class Queries {
         public static final String GET_HSP_METADATA = "SELECT * FROM masters.tbl_hsp_metadata " + 
                                 "WHERE hsp_id = :hspId ;";
         
-        public static final String UPDATE_HSP_METADATA = "INSERT INTO masters.tbl_hsp_metadata (hsp_id, partner_category, partner_sub_category) " + 
-                                "VALUES(:hspId, :partnerCategory, :partnerSubCategory)";
+        public static final String UPDATE_HSP_METADATA = "INSERT INTO masters.tbl_hsp_metadata (hsp_id, partner_category, partner_sub_category, keyword) " + 
+                                "VALUES(:hspId, :partnerCategory, :partnerSubCategory, :keyword)";
 
         public static final String GET_CATEGORY_MISC = " SELECT json_1 FROM masters.tbl_miscellaneous WHERE `key` = :key ";
 

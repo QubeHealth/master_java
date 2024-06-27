@@ -404,6 +404,7 @@ public class HspController extends BaseController {
         return healthKeyword;
     }
 
+    @SuppressWarnings("unused")
     @POST
     @Path("/saveQrData")
     @Produces(MediaType.APPLICATION_JSON)
@@ -412,7 +413,7 @@ public class HspController extends BaseController {
             QrDataSchema body) {
 
         // parse the normal upi url
-        QrData parsedQr = Helper.parseUPIUrl(body.getUpiQrUrl());
+        QrInfo parsedQr = Helper.parseUPIUrl(body.getUpiQrUrl());
 
         if (parsedQr == null) {
             parsedQr = Helper.parseEMVQR(body.getUpiQrUrl());
@@ -457,7 +458,7 @@ public class HspController extends BaseController {
 
             HspMetadata inTable = hspService.getHspMetadata(body.getHspId());
             if (inTable != null) {
-                return response(Response.Status.OK, new ApiResponse<>(true, "Data inserted successfully", null));
+                return response(Response.Status.OK, new ApiResponse<>(true, "Data already inserted", null));
             }
 
             PartnerCategory partnerCategory = hspService.getPartnerCategory("partnership_category");
@@ -466,6 +467,13 @@ public class HspController extends BaseController {
 
             Map<String, Object> insertData = extractHspCategory(categoryMap, bankAccountName);
 
+            Long checkForDataInsertedIntblHsp = this.hspService.insertDataInHspMetadata(body.getHspId(),
+                    insertData.get("primary_key").toString(), insertData.get("secondary_key").toString(),
+                    insertData.get("keyword").toString());
+
+            if (checkForDataInsertedIntblHsp == null) {
+                System.out.print("Data not added successfull in table hsp");
+            }
         }
 
         return response(Response.Status.OK, new ApiResponse<>(true, "Data inserted successfully", null));
@@ -488,6 +496,7 @@ public class HspController extends BaseController {
                     if (bankAccountName.contains(key)) {
                         insertData.put("primary_key", primaryKey);
                         insertData.put("secondary_key", secondaryKey);
+                        insertData.put("keyword", key);
                         found = true;
                         break;
                     }

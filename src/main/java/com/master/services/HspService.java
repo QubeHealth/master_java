@@ -6,14 +6,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.glassfish.jersey.message.internal.Qualified;
 import org.jdbi.v3.core.Jdbi;
-import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.master.MasterConfiguration;
-import com.master.api.ApiRequest;
 import com.master.api.ApiResponse;
 import com.master.api.InsertHspBrandName;
 import com.master.client.LinkageNwService;
@@ -253,4 +250,11 @@ public class HspService extends BaseService {
         MiscDao miscDao = jdbi.onDemand(MiscDao.class);
         return miscDao.getCategoryMisc(key);
     }
+
+    public long insertDataInHspMetadata(String hspId, String category, String subcategory, String keyword) {
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+        return hspDao.updateHspMetadata(hspId, category, subcategory, keyword);
+    }
+
+
 }
