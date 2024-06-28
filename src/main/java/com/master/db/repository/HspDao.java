@@ -61,4 +61,8 @@ public interface HspDao {
     @SqlUpdate(Queries.INSERT_HSP_QR)
     @GetGeneratedKeys("id")
     Integer insertHspQr(@BindMap Map<String, Object> insertData);
+
+    @SqlUpdate(Queries.UPDATE_HSP_LOCATION)
+    Integer updateHspLocation(@Bind("location") String location, @Bind("hspId") String hspId);
+
 }

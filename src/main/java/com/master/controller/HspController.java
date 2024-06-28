@@ -1,12 +1,25 @@
 package com.master.controller;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.jdbi.v3.core.Jdbi;
 
+import com.google.cloud.storage.BlobInfo;
+import com.google.rpc.Help;
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
 import com.master.api.InsertHspBrandName;
@@ -22,6 +35,7 @@ import com.master.core.validations.PaymentSchemas.QrSchema;
 import com.master.core.validations.PaymentSchemas.VpaSchemas;
 import com.master.db.model.Hsp;
 import com.master.services.HspService;
+import com.master.utility.GcpFileUpload;
 import com.master.utility.Helper;
 import com.master.utility.sqs.ExecutionsConstants;
 import com.master.utility.sqs.Producer;
@@ -396,5 +410,68 @@ public class HspController extends BaseController {
             }
         }
         return healthKeyword;
+    }
+
+    @POST
+    @Path("/saveHspBank")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response saveHspBank(@Context HttpServletRequest request,
+            @FormDataParam("hsp_id") String hspId,
+            @FormDataParam("location") String location,
+            @FormDataParam("file") FormDataBodyPart fileDetail) {
+        try {
+
+            final String userId = request.getAttribute("user_id").toString();
+
+            if (hspId == null || hspId.isBlank()) {
+                return response(Response.Status.BAD_REQUEST,
+                        new ApiResponse<>(false, "hsp id is required", null));
+            }
+
+            String contentType = fileDetail.getMediaType().toString();
+
+            boolean res = false;
+
+            if (fileDetail != null) {
+                if (!Constants.VALID_IMAGE_FORMAT.contains(contentType)) {
+                    return response(Response.Status.BAD_REQUEST,
+                            new ApiResponse<>(false, "Invalid file (Allowed file jpg/jpeg/png)", null));
+
+                }
+
+                LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+                // Format the local date and time
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                String formattedDateTime = localDateTime.format(formatter);
+
+                int lastSlashIndex = contentType.lastIndexOf('/');
+                String fileName = hspId + "_" + request.getAttribute("user_id").toString() + "_" + formattedDateTime
+                        + "." + contentType.substring(lastSlashIndex + 1);
+
+                System.out.println("File name => " + fileName);
+                String outputFilePath = Helper.md5Encryption(userId) + "/" + fileName;
+
+                ApiResponse<String> uploadRes = GcpFileUpload.uploadFile(GcpFileUpload.USER_DATA_BUCKET, outputFilePath,
+                        fileDetail.getEntityAs(String.class), contentType, true);
+
+                res = uploadRes.getStatus();
+                System.out.println("CHECQUE upload res => " + Helper.toJsonString(uploadRes));
+
+            }
+
+            if (location != null && !location.isBlank()) {
+                Integer updateRes = this.hspService.updateHspLocation(location, hspId);
+                System.out.println("HSP LOCATION UPDATE => " + updateRes);
+
+                res = updateRes != null;
+            }
+
+            return response(Response.Status.OK,
+                    new ApiResponse<>(res, res ? "success" : "failed", null));
+
+        } catch (Exception e) {
+            return response(Response.Status.FORBIDDEN,
+                    new ApiResponse<>(false, "File upload failed", e.getMessage()));
+        }
     }
 }

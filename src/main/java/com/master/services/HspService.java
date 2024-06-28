@@ -198,4 +198,10 @@ public class HspService extends BaseService {
 
     }
 
+    public Integer updateHspLocation(String location, String hspId) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        return hspDao.updateHspLocation(location, hspId);
+    }
 }

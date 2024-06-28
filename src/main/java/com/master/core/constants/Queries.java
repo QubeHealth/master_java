@@ -37,4 +37,6 @@ public abstract class Queries {
         public static final String INSERT_HSP_QR = "INSERT INTO tbl_hsp (hospital_name, uuid, mcc, vpa, hsp_official_name, status) "
                         + " values (:hospitalName, :uuid, :mcc, :vpa, :bankAccountName, :status)";
 
+        public static final String UPDATE_HSP_LOCATION = "UPDATE tbl_hsp set address = :location where id = :hspId;";
+
 }
