@@ -418,6 +418,7 @@ public class HspController extends BaseController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response saveHspBank(@Context HttpServletRequest request,
             @FormDataParam("hsp_id") String hspId,
+            @FormDataParam("hsp_contact") String hspContact,
             @FormDataParam("location") String location,
             @FormDataParam("file") FormDataBodyPart fileDetail) {
         try {
@@ -426,6 +427,11 @@ public class HspController extends BaseController {
             if (hspId == null || hspId.isBlank()) {
                 return response(Response.Status.BAD_REQUEST,
                         new ApiResponse<>(false, "HSP ID is required", null));
+            }
+
+            if (hspContact == null || hspContact.isBlank() || !hspContact.matches("^[6-9]\\d{9}$")) {
+                return response(Response.Status.BAD_REQUEST,
+                        new ApiResponse<>(false, "Please enter a valid hsp contact number", null));
             }
 
             boolean res = false;
@@ -448,7 +454,8 @@ public class HspController extends BaseController {
                 System.out.println("File name => " + fileName);
                 String outputFilePath = Helper.md5Encryption(userId) + fileName;
 
-                String base64Img = Base64.getEncoder().encodeToString(fileDetail.getEntityAs(InputStream.class).readAllBytes());
+                String base64Img = Base64.getEncoder()
+                        .encodeToString(fileDetail.getEntityAs(InputStream.class).readAllBytes());
 
                 ApiResponse<String> uploadRes = GcpFileUpload.uploadFile(
                         GcpFileUpload.USER_DATA_BUCKET,
