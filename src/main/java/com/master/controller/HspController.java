@@ -436,6 +436,13 @@ public class HspController extends BaseController {
 
             boolean res = false;
 
+            Integer updateRes = this.hspService.updateHspLocation(location, hspContact, hspId);
+            System.out.println("HSP Location Update => " + updateRes);
+
+            if (updateRes != null) {
+                res = true;
+            }
+
             if (fileDetail != null) {
                 String contentType = fileDetail.getMediaType().toString();
 
@@ -466,15 +473,6 @@ public class HspController extends BaseController {
 
                 res = uploadRes.getStatus();
                 System.out.println("File upload response => " + Helper.toJsonString(uploadRes));
-            }
-
-            if (location != null && !location.isBlank()) {
-                Integer updateRes = this.hspService.updateHspLocation(location, hspId);
-                System.out.println("HSP Location Update => " + updateRes);
-
-                if (updateRes != null) {
-                    res = true;
-                }
             }
 
             return response(Response.Status.OK,

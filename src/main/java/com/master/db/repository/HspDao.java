@@ -63,6 +63,6 @@ public interface HspDao {
     Integer insertHspQr(@BindMap Map<String, Object> insertData);
 
     @SqlUpdate(Queries.UPDATE_HSP_LOCATION)
-    Integer updateHspLocation(@Bind("location") String location, @Bind("hspId") String hspId);
+    Integer updateHspLocation(@Bind("location") String location, @Bind("hspContact") String contact, @Bind("hspId") String hspId);
 
 }
