@@ -63,7 +63,7 @@ public class PartnershipController extends BaseController {
         List<PartnershipSchema> data = this.partnershipService.getHspDetails();
         if (data == null || data.isEmpty()) {
             return response(Response.Status.NOT_FOUND,
-                    new ApiResponse<>(false, "No hospital details found", null));
+                    new ApiResponse<>(false, "No hospital details found", new ArrayList<>()));
         }
         return response(Response.Status.OK, new ApiResponse<>(true, "Hospital details fetch success", data));
     }

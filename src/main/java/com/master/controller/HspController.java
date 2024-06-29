@@ -430,7 +430,10 @@ public class HspController extends BaseController {
 
             String contentType = fileDetail.getMediaType().toString();
 
+
             boolean res = false;
+
+            System.out.println(fileDetail.toString());
 
             if (fileDetail != null) {
                 if (!Constants.VALID_IMAGE_FORMAT.contains(contentType)) {
