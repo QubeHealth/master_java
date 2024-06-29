@@ -481,7 +481,7 @@ public class HspController extends BaseController {
         } catch (Exception e) {
             e.printStackTrace();
             return response(Response.Status.FORBIDDEN,
-                    new ApiResponse<>(false, "File upload failed", e.getMessage()));
+                    new ApiResponse<>(false, "Something went wrong", e));
         }
     }
 
