@@ -80,7 +80,9 @@ public class HspService extends BaseService {
             hspDao.insertHspBrandName(reqBody.getHspId(), updatedJsonData);
             return new InsertHspBrandName(true, "Successfully updated existing Hsp Brand Name List");
 
-        } catch (Exception e) {
+        } catch (
+
+        Exception e) {
             return new InsertHspBrandName(false, "Failed to add Hsp Brand Name");
         }
     }
@@ -112,7 +114,7 @@ public class HspService extends BaseService {
         HspDao hspDao = jdbi.onDemand(HspDao.class);
 
         Hsp hsp = hspDao.getHspbyMobile(mobile);
-        if (hsp == null) {
+        if (hsp == null || hsp.getStatus() == null || hsp.getVpa() == null) {
             return null;
         }
 
@@ -131,7 +133,7 @@ public class HspService extends BaseService {
         HspDao hspDao = jdbi.onDemand(HspDao.class);
 
         Hsp hsp = hspDao.getHspbyVpa(vpa);
-        if (hsp == null) {
+        if (hsp == null || hsp.getStatus() == null) {
             return null;
         }
 
@@ -150,7 +152,7 @@ public class HspService extends BaseService {
         HspDao hspDao = jdbi.onDemand(HspDao.class);
 
         Hsp hsp = hspDao.getHspbyBankDetails(body);
-        if (hsp == null) {
+        if (hsp == null || hsp.getStatus() == null) {
             return null;
         }
 
@@ -165,4 +167,41 @@ public class HspService extends BaseService {
         return data;
     }
 
+    public Hsp getHspbyQRVpa(String vpa) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        return hspDao.getHspbyQRVpa(vpa);
+    }
+
+    public Hsp getHspbyQRMcc(String vpa) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        return hspDao.getHspbyQRMcc(vpa);
+    }
+
+    public Integer insertHspQr(String hspName, Integer mccCode, String vpa, String hspBankName, Boolean isValidHsp) {
+
+        Map<String, Object> insertMap = new HashMap<>();
+
+        insertMap.put("hospitalName", hspName);
+        insertMap.put("uuid", UUID.randomUUID().toString());
+        insertMap.put("mcc", mccCode);
+        insertMap.put("vpa", vpa);
+        insertMap.put("bankAccountName", hspBankName);
+        insertMap.put("status", Boolean.TRUE.equals(isValidHsp) ? "VERIFIED" : "PENDING");
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        return hspDao.insertHspQr(insertMap);
+
+    }
+
+    public Integer updateHspLocation(String location, String hspId) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        return hspDao.updateHspLocation(location, hspId);
+    }
 }

@@ -32,4 +32,7 @@ public class Hsp {
 
     private String status;
 
+    @JsonProperty("mcc_code")
+    private Integer mccCode;
+
 }
