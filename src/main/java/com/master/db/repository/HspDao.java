@@ -3,7 +3,6 @@ package com.master.db.repository;
 import java.util.List;
 import java.util.Map;
 
-import org.hibernate.validator.constraints.ru.INN;
 import org.jdbi.v3.sqlobject.config.RegisterBeanMapper;
 import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.customizer.BindBean;
@@ -17,7 +16,6 @@ import com.master.core.constants.Queries;
 import com.master.core.validations.PaymentSchemas.BankSchema;
 import com.master.db.model.Hsp;
 import com.master.db.model.HspMetadata;
-import com.master.db.model.PrefundedInfo;
 import com.master.db.model.GetHspBrandName;
 
 public interface HspDao {
