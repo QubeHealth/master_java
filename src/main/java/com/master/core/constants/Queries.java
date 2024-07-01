@@ -37,7 +37,7 @@ public abstract class Queries {
         public static final String INSERT_HSP_QR = "INSERT INTO tbl_hsp (hospital_name, uuid, mcc, vpa, hsp_official_name, status) "
                         + " values (:hospitalName, :uuid, :mcc, :vpa, :bankAccountName, :status)";
 
-        public static final String UPDATE_HSP_LOCATION = "UPDATE tbl_hsp set address = :location where id = :hspId;";
+        public static final String UPDATE_HSP_LOCATION = "UPDATE tbl_hsp SET address = COALESCE(:location, address), hsp_contact = COALESCE(:hspContact, hsp_contact) where id = :hspId;";
 
         public static final String GET_PARTNERSHIP_HOSPITAL_DETAILS = "SELECT tbl_hsp.hospital_name, tbl_hsp.id, tbl_hsp.city_name,tbl_hsp.bank_ifsc, tbl_hsp.bank_account_number, tbl_hsp.address, tbl_hsp.vpa, tbl_hsp.pincode, tbl_hsp.state, tbl_hsp_metadata.status, tbl_hsp_metadata.partner_category, tbl_hsp_metadata.partner_sub_category FROM tbl_hsp INNER JOIN tbl_hsp_metadata ON tbl_hsp.id=tbl_hsp_metadata.hsp_id; ";
 
