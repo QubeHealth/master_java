@@ -17,4 +17,7 @@ public class PrefundedEmailers {
     @JsonProperty("is_active")
     private boolean isActive;
 
+    @JsonProperty("claim_no")
+    private boolean claimNo;
+
 }
