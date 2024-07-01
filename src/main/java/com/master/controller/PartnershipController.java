@@ -81,11 +81,11 @@ public class PartnershipController extends BaseController {
                     .reduce("", (acc, msg) -> acc.isEmpty() ? msg : acc + "; " + msg);
             return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, errorMessage, null));
         }
-        Integer data=this.partnershipService.saveHospitalDetails(reqBody);
+        Integer data = this.partnershipService.saveHospitalDetails(reqBody);
         if (data == null) {
             return response(Response.Status.NOT_FOUND,
                     new ApiResponse<>(false, "Couldn't save data", null));
         }
         return response(Response.Status.OK, new ApiResponse<>(true, "Save data success", data));
     }
-    }
+}
