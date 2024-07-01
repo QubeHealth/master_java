@@ -9,8 +9,8 @@ import org.jdbi.v3.core.Jdbi;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.master.MasterConfiguration;
 import com.master.core.constants.Constants;
+import com.master.db.model.Miscellaneous;
 import com.master.db.model.PrefundedDocument;
-import com.master.db.model.PrefundedInfo;
 import com.master.db.repository.MiscDao;
 import com.master.db.repository.SelfFundedDao;
 
@@ -25,12 +25,12 @@ public class SelfFundedService extends BaseService {
     public Map<String, Object> getSelfFundedConstants(String name) {
         try {
             MiscDao miscDao = jdbi.onDemand(MiscDao.class);
-            PrefundedInfo data = miscDao.getSelfundedDetails(name);
+            Miscellaneous data = miscDao.getSelfundedDetails(name);
 
-            if (data != null && data.getData() != null) {
+            if (data != null && data.getJson1() != null) {
                 ObjectMapper mapper = new ObjectMapper();
 
-                return mapper.readValue(data.getData(), Map.class);
+                return mapper.readValue(data.getJson1(), Map.class);
             } else {
                 return Collections.emptyMap();
             }

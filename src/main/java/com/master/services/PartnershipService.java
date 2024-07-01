@@ -9,8 +9,8 @@ import org.jdbi.v3.core.Jdbi;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.master.MasterConfiguration;
+import com.master.db.model.Miscellaneous;
 import com.master.db.model.PartnershipSchema;
-import com.master.db.model.PrefundedInfo;
 import com.master.db.model.SavePartnershipSchema;
 import com.master.db.repository.MiscDao;
 import com.master.db.repository.PartnershipDao;
@@ -25,8 +25,8 @@ public class PartnershipService extends BaseService {
 
         MiscDao miscDao = jdbi.onDemand(MiscDao.class);
 
-        PrefundedInfo a = miscDao.getSelfundedDetails("partnership_category");
-        String catandsubcat = a.getData();
+        Miscellaneous a = miscDao.getSelfundedDetails("partnership_category");
+        String catandsubcat = a.getJson1();
         Map<String, List<String>> categoriesMap = new HashMap<>();
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -47,8 +47,8 @@ public class PartnershipService extends BaseService {
     public Map<String, List<String>> getSubCategoryDetails() {
         MiscDao miscDao = jdbi.onDemand(MiscDao.class);
 
-        PrefundedInfo a = miscDao.getSelfundedDetails("partnership_category");
-        String catandsubcat = a.getData();
+        Miscellaneous a = miscDao.getSelfundedDetails("partnership_category");
+        String catandsubcat = a.getJson1();
         Map<String, List<String>> subCategoriesMap = new HashMap<>();
         ObjectMapper objectMapper = new ObjectMapper();
 
