@@ -1,13 +1,19 @@
 package com.master.db.repository;
 
 import java.util.List;
+import java.util.Map;
 
 import org.jdbi.v3.sqlobject.config.RegisterBeanMapper;
 import org.jdbi.v3.sqlobject.customizer.Bind;
+import org.jdbi.v3.sqlobject.customizer.BindMap;
+import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
+import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
 import com.master.core.constants.Queries;
+import com.master.db.model.EmailerItems;
 import com.master.db.model.PrefundedDocument;
+import com.master.db.model.PrefundedEmailers;
 
 public interface SelfFundedDao {
 
@@ -18,4 +24,12 @@ public interface SelfFundedDao {
     @SqlQuery(Queries.GET_SELF_FUNDED_DOCUMENTS_BY_BRANCH)
     @RegisterBeanMapper(PrefundedDocument.class)
     List<PrefundedDocument> getSelfFundedDataByBranch(@Bind("branchId") Long branch);
+
+    @SqlUpdate(Queries.INSERT_EMAILER_DATA_BY_KHID)
+    @RegisterBeanMapper(PrefundedEmailers.class)
+    Long setEmailerData (@BindMap Map<String, Object> insertData);
+
+    @SqlUpdate(Queries.INSERT_EMAILER_ITEMS_BY_KHID)
+    @GetGeneratedKeys("id")
+    Long setEmailItems (@BindMap Map<String, Object> insertData);
 }

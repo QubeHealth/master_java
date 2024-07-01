@@ -1,5 +1,6 @@
 package com.master.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,7 +11,10 @@ import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
 import com.master.api.SelfFundedDocuments;
 import com.master.core.validations.SelfFundedDataSchema;
+import com.master.db.model.EmailerItems;
 import com.master.db.model.PrefundedDocument;
+import com.master.db.model.PrefundedEmailers;
+import com.master.db.repository.SelfFundedDao;
 import com.master.services.SelfFundedService;
 
 import jakarta.validation.ConstraintViolation;
@@ -77,6 +81,87 @@ public class SelfFundedController extends BaseController {
                                 .entity(new ApiResponse<>(true,
                                                 "Successfully fetched",
                                                 response))
+                                .build();
+        }
+
+        @POST
+        @Path("/emailInsert")
+        @Produces(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response emailInsert(PrefundedEmailers body){
+                Set<ConstraintViolation<PrefundedEmailers>> violations = validator.validate(body);
+                if (!violations.isEmpty()) {
+                        // Construct error message from violations
+                        String errorMessage = violations.stream()
+                                        .map(ConstraintViolation::getMessage)
+                                        .reduce("", (acc, msg) -> acc.isEmpty() ? msg : acc + "; " + msg);
+                        return Response.status(Response.Status.BAD_REQUEST)
+                                        .entity(new ApiResponse<>(false, errorMessage, null))
+                                        .build();
+                }
+
+                SelfFundedDao selfFundedDao = jdbi.onDemand(SelfFundedDao.class);
+
+                Map<String, Object> bodyMap = new HashMap<>();
+                bodyMap.put("type",body.getType());
+                bodyMap.put("subject",body.getSubject());
+                bodyMap.put("is_active",true);
+                Long getEmailInsert = selfFundedDao.setEmailItems(bodyMap);
+
+                if(getEmailInsert == null){
+                        return Response.status(Response.Status.OK)
+                                .entity(new ApiResponse<>(true,
+                                                "Data insertion failed",
+                                                getEmailInsert))
+                                .build();
+                }
+                return Response.status(Response.Status.OK)
+                                .entity(new ApiResponse<>(true,
+                                                "Successfully updated",
+                                                getEmailInsert))
+                                .build();
+        }
+
+        @POST
+        @Path("/emailItems")
+        @Produces(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response emailInsert(EmailerItems body){
+                Set<ConstraintViolation<EmailerItems>> violations = validator.validate(body);
+                if (!violations.isEmpty()) {
+                        // Construct error message from violations
+                        String errorMessage = violations.stream()
+                                        .map(ConstraintViolation::getMessage)
+                                        .reduce("", (acc, msg) -> acc.isEmpty() ? msg : acc + "; " + msg);
+                        return Response.status(Response.Status.BAD_REQUEST)
+                                        .entity(new ApiResponse<>(false, errorMessage, null))
+                                        .build();
+                }
+
+                SelfFundedDao selfFundedDao = jdbi.onDemand(SelfFundedDao.class);
+
+                Map<String, Object> bodyMap = new HashMap<>();
+                bodyMap.put("KH_id",body.getKhId());
+                bodyMap.put("claim_no",body.getClaimNo()==null?null:body.getClaimNo());
+                bodyMap.put("policy",body.getPolicy()==null?null:body.getPolicy());
+                bodyMap.put("initial_amt_req",body.getInitialAmtReq()==null?null:body.getInitialAmtReq());
+                bodyMap.put("initial_amt_approved",body.getInitialAmtApproved()==null?null:body.getInitialAmtApproved());
+                bodyMap.put("final_adj_amt_req",body.getFinalAdjAmtReq()==null?null:body.getFinalAdjAmtReq());
+                bodyMap.put("final_adj_amt_approved",body.getFinalAdjAmtApproved()==null?null:body.getFinalAdjAmtApproved());
+
+                Long getEmailItems = selfFundedDao.setEmailItems(bodyMap);
+
+                if(getEmailItems == null){
+                        return Response.status(Response.Status.OK)
+                                .entity(new ApiResponse<>(true,
+                                                "Data insertion failed",
+                                                getEmailItems))
+                                .build();
+                }
+                return Response.status(Response.Status.OK)
+                                .entity(new ApiResponse<>(true,
+                                                "Successfully updated",
+                                                getEmailItems))
                                 .build();
         }
 

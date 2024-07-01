@@ -29,4 +29,10 @@ public abstract class Queries {
 
         public static final String GET_SELF_FUNDED_DOCUMENTS_BY_BRANCH = "SELECT  d.id, d.type, d.name, d.preview_link AS link FROM masters.tbl_prefunded_documents d JOIN masters.tbl_prefunded_branches b ON d.pf_branch_id = b.id WHERE d.pf_branch_id = :branchId";
 
+        public static final String INSERT_EMAILER_DATA_BY_KHID = "INSERT INTO tbl_prefunded_emailers (type,subject,is_active) "
+                        + " VALUES(:type, :subject, :is_active)";
+
+        public static final String INSERT_EMAILER_ITEMS_BY_KHID = "INSERT INTO tbl_emailer_items (KH_id, claim_no, policy, initial_amt_req, initial_amt_approved, final_adj_amt_req, final_adj_amt_approved) "
+                        + " VALUES(:KH_id, :claim_no, :policy, :initial_amt_req, :initial_amt_approved, :final_adj_amt_req, :final_adj_amt_approved)";
+
 }
