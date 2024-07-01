@@ -65,6 +65,10 @@ public interface HspDao {
     @GetGeneratedKeys("id")
     Integer insertHspQr(@BindMap Map<String, Object> insertData);
 
+    @SqlUpdate(Queries.UPDATE_HSP_LOCATION)
+    Integer updateHspLocation(@Bind("location") String location, @Bind("hspContact") String contact,
+            @Bind("hspId") String hspId);
+
     @SqlUpdate(Queries.INSERT_HSP_QR_DATA)
     @GetGeneratedKeys("id")
     Long insertHspQrData(@BindMap Map<String, Object> insertData);
@@ -74,16 +78,18 @@ public interface HspDao {
 
     @SqlQuery(Queries.GET_HSP_NAME)
     @RegisterBeanMapper(Hsp.class)
-    Hsp getHspName(@Bind("hspId")String hspId);
+    Hsp getHspName(@Bind("hspId") String hspId);
 
     @SqlUpdate(Queries.UPDATE_HSP_OFFCICIAL_NAME)
-    Integer updateHospitalOfficialName(@Bind("hspId") String hspId, @Bind("hospitalOfficialName") String hspOfficialName);
+    Integer updateHospitalOfficialName(@Bind("hspId") String hspId,
+            @Bind("hospitalOfficialName") String hspOfficialName);
 
     @SqlQuery(Queries.GET_HSP_METADATA)
     @RegisterBeanMapper(HspMetadata.class)
     HspMetadata getHspMetaData(@Bind("hspId") String hspId);
 
     @SqlUpdate(Queries.UPDATE_HSP_METADATA)
-    Integer updateHspMetadata(@Bind("hspId") String hspId, @Bind("partnerCategory") String partnerCategory, @Bind("partnerSubCategory") String partnerSubCategory, @Bind("keyword") String keyword);
+    Integer updateHspMetadata(@Bind("hspId") String hspId, @Bind("partnerCategory") String partnerCategory,
+            @Bind("partnerSubCategory") String partnerSubCategory, @Bind("keyword") String keyword);
 
 }

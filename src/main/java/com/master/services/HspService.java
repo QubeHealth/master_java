@@ -205,6 +205,13 @@ public class HspService extends BaseService {
 
     }
 
+    public Integer updateHspLocation(String location, String hspContact, String hspId) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        return hspDao.updateHspLocation(location, hspContact, hspId);
+    }
+
     public Long insertHspQrData(Map<String, Object> insertData) {
 
         HspDao hspDao = jdbi.onDemand(HspDao.class);
@@ -255,6 +262,5 @@ public class HspService extends BaseService {
         HspDao hspDao = jdbi.onDemand(HspDao.class);
         return hspDao.updateHspMetadata(hspId, category, subcategory, keyword);
     }
-
 
 }

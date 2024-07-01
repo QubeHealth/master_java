@@ -105,6 +105,10 @@
             <artifactId>amqp-client</artifactId>
             <version>5.20.0</version> <!-- Use the latest version available -->
         </dependency>
+		<dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-multipart</artifactId>
+        </dependency>
 	</dependencies>
 	<build>
 		<pluginManagement>

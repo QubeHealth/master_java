@@ -1,5 +1,14 @@
 package com.master.controller;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Base64;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -7,9 +16,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.jdbi.v3.core.Jdbi;
 import org.json.JSONObject;
 
+import com.codahale.metrics.MetricRegistryListener.Base;
+import com.google.cloud.storage.BlobInfo;
+import com.google.rpc.Help;
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
 import com.master.api.InsertHspBrandName;
@@ -28,6 +42,7 @@ import com.master.db.model.Hsp;
 import com.master.db.model.HspMetadata;
 import com.master.db.model.PartnerCategory;
 import com.master.services.HspService;
+import com.master.utility.GcpFileUpload;
 import com.master.utility.Helper;
 import com.master.utility.sqs.ExecutionsConstants;
 import com.master.utility.sqs.Producer;
@@ -404,7 +419,78 @@ public class HspController extends BaseController {
         return healthKeyword;
     }
 
-    @SuppressWarnings("unused")
+    @POST
+    @Path("/saveHspBank")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response saveHspBank(@Context HttpServletRequest request,
+            @FormDataParam("hsp_id") String hspId,
+            @FormDataParam("hsp_contact") String hspContact,
+            @FormDataParam("location") String location,
+            @FormDataParam("file") FormDataBodyPart fileDetail) {
+        try {
+            final String userId = request.getAttribute("user_id").toString();
+
+            if (hspId == null || hspId.isBlank()) {
+                return response(Response.Status.BAD_REQUEST,
+                        new ApiResponse<>(false, "HSP ID is required", null));
+            }
+
+            if (hspContact == null || hspContact.isBlank() || !hspContact.matches("^[6-9]\\d{9}$")) {
+                return response(Response.Status.BAD_REQUEST,
+                        new ApiResponse<>(false, "Please enter a valid hsp contact number", null));
+            }
+
+            boolean res = false;
+
+            Integer updateRes = this.hspService.updateHspLocation(location, hspContact, hspId);
+            System.out.println("HSP Location Update => " + updateRes);
+
+            if (updateRes != null) {
+                res = true;
+            }
+
+            if (fileDetail != null) {
+                String contentType = fileDetail.getMediaType().toString();
+
+                if (!Constants.VALID_IMAGE_FORMAT.contains(contentType)) {
+                    return response(Response.Status.BAD_REQUEST,
+                            new ApiResponse<>(false, "Invalid file (Allowed formats: jpg/jpeg/png)", null));
+                }
+
+                LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
+                String formattedDateTime = localDateTime.format(formatter);
+
+                String fileName = String.format("/%s_%s.%s", hspId, formattedDateTime,
+                        contentType.substring(contentType.lastIndexOf('/') + 1));
+
+                System.out.println("File name => " + fileName);
+                String outputFilePath = Helper.md5Encryption(userId) + fileName;
+
+                String base64Img = Base64.getEncoder()
+                        .encodeToString(fileDetail.getEntityAs(InputStream.class).readAllBytes());
+
+                ApiResponse<String> uploadRes = GcpFileUpload.uploadFile(
+                        GcpFileUpload.USER_DATA_BUCKET,
+                        outputFilePath,
+                        base64Img,
+                        contentType,
+                        true);
+
+                res = uploadRes.getStatus();
+                System.out.println("File upload response => " + Helper.toJsonString(uploadRes));
+            }
+
+            return response(Response.Status.OK,
+                    new ApiResponse<>(res, res ? "Success" : "Failed", null));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return response(Response.Status.FORBIDDEN,
+                    new ApiResponse<>(false, "Something went wrong", e));
+        }
+    }
+
     @POST
     @Path("/saveQrData")
     @Produces(MediaType.APPLICATION_JSON)
@@ -472,7 +558,8 @@ public class HspController extends BaseController {
                     insertData.get("keyword").toString());
 
             if (checkForDataInsertedIntblHsp == null) {
-                System.out.print("Data not added successfull in table hsp");
+                return response(Response.Status.FORBIDDEN,
+                        new ApiResponse<>(false, "Failed to add data in hspmdetadata", null));
             }
         }
 
