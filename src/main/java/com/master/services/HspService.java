@@ -257,7 +257,7 @@ public class HspService extends BaseService {
         return miscDao.getCategoryMisc(key);
     }
 
-    public long insertDataInHspMetadata(String hspId, String category, String subcategory, String keyword) {
+    public Integer insertDataInHspMetadata(String hspId, String category, String subcategory, String keyword) {
         HspDao hspDao = jdbi.onDemand(HspDao.class);
         return hspDao.updateHspMetadata(hspId, category, subcategory, keyword);
     }

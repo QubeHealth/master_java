@@ -6,11 +6,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jdbi.v3.core.Jdbi;
+import org.json.JSONObject;
+
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
+import com.master.db.model.Hsp;
+import com.master.db.model.PartnerCategory;
 import com.master.db.model.PartnershipSchema;
 import com.master.db.model.SavePartnershipSchema;
+import com.master.services.HspService;
 import com.master.services.PartnershipService;
+import com.master.utility.Helper;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
@@ -25,10 +31,12 @@ import jakarta.ws.rs.core.Response;
 @Produces(MediaType.APPLICATION_JSON)
 public class PartnershipController extends BaseController {
     public PartnershipService partnershipService;
+    public HspService hspService;
 
     public PartnershipController(MasterConfiguration configuration, Validator validator, Jdbi jdbi) {
         super(configuration, validator, jdbi);
         this.partnershipService = new PartnershipService(configuration, jdbi);
+        this.hspService = new HspService(configuration, jdbi);
     }
 
     private Response response(Response.Status status, Object data) {
@@ -88,4 +96,38 @@ public class PartnershipController extends BaseController {
         }
         return response(Response.Status.OK, new ApiResponse<>(true, "Save data success", data));
     }
+
+    @POST
+    @Path("partnershipScript")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response partnershipScript() {
+
+        List<Hsp> hspList = this.partnershipService.getHspListForPartnership();
+
+        PartnerCategory partnerCategory = this.hspService.getPartnerCategory("partnership_category");
+        JSONObject jsonObject = new JSONObject(partnerCategory.getJson1());
+        Map<String, Object> categoryMap = Helper.jsonToMap(jsonObject);
+
+        System.out.println("Total => " + hspList.size());
+
+        Integer done = 0;
+        Integer failed = 0;
+
+        for (Hsp hsp : hspList) {
+            boolean success = this.partnershipService.addPartnershipDetails(hsp.getHspId().toString(), hsp.getHspName(),
+                    categoryMap);
+            if (!success) {
+                System.out.println("FAILED TO ADD DATA => " + Helper.toJsonString(hsp));
+                failed++;
+            } else {
+                done++;
+            }
+        }
+
+        System.out.println("Failed => " + failed);
+        System.out.println("success => " + done);
+
+        return response(Response.Status.OK, new ApiResponse<>(true, "Save data success", null));
+    }
+
 }

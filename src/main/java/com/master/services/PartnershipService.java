@@ -5,10 +5,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.jdbi.v3.core.Jdbi;
+import org.json.JSONArray;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.master.MasterConfiguration;
+import com.master.core.validations.PaymentSchemas.QrDataSchema;
+import com.master.db.model.Hsp;
+import com.master.db.model.HspMetadata;
 import com.master.db.model.Miscellaneous;
 import com.master.db.model.PartnershipSchema;
 import com.master.db.model.SavePartnershipSchema;
@@ -17,8 +21,11 @@ import com.master.db.repository.PartnershipDao;
 
 public class PartnershipService extends BaseService {
 
+    private HspService hspService;
+
     public PartnershipService(MasterConfiguration configuration, Jdbi jdbi) {
         super(configuration, jdbi);
+        this.hspService = new HspService(configuration, jdbi);
     }
 
     public Map<String, List<String>> getCategoryDetails() {
@@ -91,6 +98,64 @@ public class PartnershipService extends BaseService {
         return partnershipDao.savePartnershipDetails(savePartnershipSchema.getHspIds(),
                 savePartnershipSchema.getCategory(), savePartnershipSchema.getSubCategory(),
                 savePartnershipSchema.getStatus());
-       
+
+    }
+
+    public List<Hsp> getHspListForPartnership() {
+        PartnershipDao partnershipDao = jdbi.onDemand(PartnershipDao.class);
+        return partnershipDao.getHspListForPartnership();
+    }
+
+    public Boolean addPartnershipDetails(String hspId, String hspName, Map<String, Object> categoryMap) {
+        HspMetadata inTable = this.hspService.getHspMetadata(hspId);
+        if (inTable != null) {
+            return true;
+        }
+
+        Map<String, Object> insertData = extractHspCategory(categoryMap, hspName);
+
+        Integer checkForDataInsertedIntblHsp = this.hspService.insertDataInHspMetadata(hspId,
+                insertData.get("primary_key").toString(), insertData.get("secondary_key").toString(),
+                insertData.get("keyword").toString());
+
+        return checkForDataInsertedIntblHsp != null;
+    }
+
+    private Map<String, Object> extractHspCategory(Map<String, Object> categoryMap, String bankAccountName) {
+        Map<String, Object> insertData = new HashMap<>();
+        insertData.put("primary_key", "Others");
+        insertData.put("secondary_key", "Others");
+        insertData.put("keyword", "");
+
+        boolean found = false;
+
+        for (Map.Entry<String, Object> primaryEntry : categoryMap.entrySet()) {
+            String primaryKey = primaryEntry.getKey();
+
+            Map<String, Object> secondaryMap = (Map<String, Object>) primaryEntry.getValue();
+
+            for (Map.Entry<String, Object> secondaryEntry : secondaryMap.entrySet()) {
+                String secondaryKey = secondaryEntry.getKey();
+                JSONArray valuesList = (JSONArray) secondaryEntry.getValue();
+
+                for (Object key : valuesList) {
+                    if (bankAccountName.contains(key.toString())) {
+                        insertData.put("primary_key", primaryKey);
+                        insertData.put("secondary_key", secondaryKey);
+                        insertData.put("keyword", key.toString());
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) {
+                    break;
+                }
+            }
+            if (found) {
+                break;
+            }
+        }
+
+        return insertData;
     }
 }

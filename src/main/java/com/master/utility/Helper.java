@@ -32,6 +32,7 @@ import com.emv.qrcode.model.mpm.MerchantPresentedMode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonArray;
 import com.master.api.QrData.QrInfo;
 
 

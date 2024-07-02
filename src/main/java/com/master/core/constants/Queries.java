@@ -59,4 +59,12 @@ public abstract class Queries {
 
         public static final String UPDATE_PARTNERSHIP_HOSPITAL_DETAILS = "UPDATE tbl_hsp_metadata SET partner_category = CASE WHEN hsp_id IN (<hspIds>) THEN COALESCE(:category, partner_category) ELSE partner_category END, partner_sub_category = CASE WHEN hsp_id IN (<hspIds>) THEN COALESCE(:subCategory, partner_sub_category) ELSE partner_sub_category END, status = CASE WHEN hsp_id IN (<hspIds>) THEN COALESCE(:partner_status, status) ELSE status END WHERE hsp_id IN (<hspIds>)";
 
+        public static final String HSP_PARTNERSHIP_SCRIPT = "SELECT hsp.id AS hsp_id, hsp.hospital_name as hsp_name, hsp.hsp_official_name, hsp.vpa, hsp.bank_account_number, hsp.bank_ifsc FROM "
+                        + " (SELECT *, ROW_NUMBER() OVER (PARTITION BY vpa ORDER BY id DESC) AS vpa_row_num, "
+                        + "  ROW_NUMBER() OVER (PARTITION BY bank_ifsc, bank_account_number ORDER BY id DESC) AS bank_row_num "
+                        + "  FROM masters.tbl_hsp "
+                        + "  WHERE status = 'VERIFIED') AS hsp "
+                        + " WHERE (hsp.vpa_row_num = 1 OR hsp.bank_row_num = 1) "
+                        + " ORDER BY TRIM(BOTH ' ' FROM hsp.hospital_name); ";
+
 }

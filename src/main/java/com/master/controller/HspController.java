@@ -33,6 +33,7 @@ import com.master.db.model.Hsp;
 import com.master.db.model.HspMetadata;
 import com.master.db.model.PartnerCategory;
 import com.master.services.HspService;
+import com.master.services.PartnershipService;
 import com.master.utility.GcpFileUpload;
 import com.master.utility.Helper;
 import com.master.utility.sqs.ExecutionsConstants;
@@ -55,12 +56,14 @@ import jakarta.ws.rs.core.Response;
 public class HspController extends BaseController {
     private LinkageNwService linkageNwService;
     private HspService hspService;
+    private PartnershipService partnershipService;
 
     public HspController(MasterConfiguration configuration, Validator validator, Jdbi jdbi) {
         super(configuration, validator, jdbi);
 
         this.linkageNwService = new LinkageNwService(configuration);
         this.hspService = new HspService(configuration, jdbi);
+        this.partnershipService = new PartnershipService(configuration, jdbi);
     }
 
     private Response response(Response.Status status, Object data) {
@@ -526,29 +529,20 @@ public class HspController extends BaseController {
         qrInsertData.put("txn_id", parsedQr.getTransactionId());
         qrInsertData.put("qr_expiry", null);
 
-        Long success = hspService.insertHspQrData(qrInsertData);
-        if (success == null) {
+        Long insertId = hspService.insertHspQrData(qrInsertData);
+        if (insertId == null) {
             return response(Response.Status.FORBIDDEN, new ApiResponse<>(false, "Failed to save qr data", null));
         }
 
         if (body.isValid() && bankAccountName != null) {
 
-            HspMetadata inTable = hspService.getHspMetadata(body.getHspId());
-            if (inTable != null) {
-                return response(Response.Status.OK, new ApiResponse<>(true, "Data already inserted", null));
-            }
-
             PartnerCategory partnerCategory = hspService.getPartnerCategory("partnership_category");
             JSONObject jsonObject = new JSONObject(partnerCategory.getJson1());
             Map<String, Object> categoryMap = Helper.jsonToMap(jsonObject);
 
-            Map<String, Object> insertData = extractHspCategory(categoryMap, bankAccountName);
-
-            Long checkForDataInsertedIntblHsp = this.hspService.insertDataInHspMetadata(body.getHspId(),
-                    insertData.get("primary_key").toString(), insertData.get("secondary_key").toString(),
-                    insertData.get("keyword").toString());
-
-            if (checkForDataInsertedIntblHsp == null) {
+            boolean success = this.partnershipService.addPartnershipDetails(body.getHspId(), bankAccountName,
+                    categoryMap);
+            if (!success) {
                 return response(Response.Status.FORBIDDEN,
                         new ApiResponse<>(false, "Failed to add data in hspmdetadata", null));
             }
@@ -557,37 +551,4 @@ public class HspController extends BaseController {
         return response(Response.Status.OK, new ApiResponse<>(true, "Data inserted successfully", null));
     }
 
-    private Map<String, Object> extractHspCategory(Map<String, Object> categoryMap, String bankAccountName) {
-        Map<String, Object> insertData = new HashMap<>();
-        boolean found = false;
-
-        for (Map.Entry<String, Object> primaryEntry : categoryMap.entrySet()) {
-            String primaryKey = primaryEntry.getKey();
-
-            Map<String, List<String>> secondaryMap = (Map<String, List<String>>) primaryEntry.getValue();
-
-            for (Map.Entry<String, List<String>> secondaryEntry : secondaryMap.entrySet()) {
-                String secondaryKey = secondaryEntry.getKey();
-                List<String> valuesList = secondaryEntry.getValue();
-
-                for (String key : valuesList) {
-                    if (bankAccountName.contains(key)) {
-                        insertData.put("primary_key", primaryKey);
-                        insertData.put("secondary_key", secondaryKey);
-                        insertData.put("keyword", key);
-                        found = true;
-                        break;
-                    }
-                }
-                if (found) {
-                    break;
-                }
-            }
-            if (found) {
-                break;
-            }
-        }
-
-        return insertData;
-    }
 }
