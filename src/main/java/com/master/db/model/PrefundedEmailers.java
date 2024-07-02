@@ -18,6 +18,6 @@ public class PrefundedEmailers {
     private boolean isActive;
 
     @JsonProperty("claim_no")
-    private boolean claimNo;
+    private String claimNo;
 
 }

@@ -106,15 +106,9 @@ public class SelfFundedController extends BaseController {
                 bodyMap.put("type",body.getType());
                 bodyMap.put("subject",body.getSubject());
                 bodyMap.put("is_active",true);
-                Long getEmailInsert = selfFundedDao.setEmailItems(bodyMap);
+                bodyMap.put("claim_no",body.getClaimNo());
+                Integer getEmailInsert = selfFundedDao.setEmailerData(bodyMap);
 
-                if(getEmailInsert == null){
-                        return Response.status(Response.Status.OK)
-                                .entity(new ApiResponse<>(true,
-                                                "Data insertion failed",
-                                                getEmailInsert))
-                                .build();
-                }
                 return Response.status(Response.Status.OK)
                                 .entity(new ApiResponse<>(true,
                                                 "Successfully updated",

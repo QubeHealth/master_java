@@ -26,7 +26,7 @@ public interface SelfFundedDao {
 
     @SqlUpdate(Queries.INSERT_EMAILER_DATA_BY_KHID)
     @RegisterBeanMapper(PrefundedEmailers.class)
-    Long setEmailerData (@BindMap Map<String, Object> insertData);
+    int setEmailerData (@BindMap Map<String, Object> insertData);
 
     @SqlUpdate(Queries.INSERT_EMAILER_ITEMS_BY_KHID)
     @GetGeneratedKeys("id")
