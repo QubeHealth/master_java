@@ -139,7 +139,7 @@ public class PartnershipService extends BaseService {
                 JSONArray valuesList = (JSONArray) secondaryEntry.getValue();
 
                 for (Object key : valuesList) {
-                    if (bankAccountName.contains(key.toString())) {
+                    if (bankAccountName.toLowerCase().contains(key.toString().toLowerCase())) {
                         insertData.put("primary_key", primaryKey);
                         insertData.put("secondary_key", secondaryKey);
                         insertData.put("keyword", key.toString());
