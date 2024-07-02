@@ -34,5 +34,8 @@ public abstract class Queries {
 
         public static final String INSERT_EMAILER_ITEMS_BY_KHID = "INSERT INTO tbl_emailer_items (KH_id, claim_no, policy, initial_amt_req, initial_amt_approved, final_adj_amt_req, final_adj_amt_approved) "
                         + " VALUES(:KH_id, :claim_no, :policy, :initial_amt_req, :initial_amt_approved, :final_adj_amt_req, :final_adj_amt_approved)";
+        
+        public static final String INSERT_ADJUDICATION_DATA = "INSERT INTO tbl_adjudication_data (user_id, offer_id, hsp_id, document_id, associated_user_id, status, created_by, requested_by, created_at, updated_at) "
+                        + "VALUES (:userId, :offerId, :hspId, :documentId, :associatedUserId, :status, :createdBy, :requestedBy, NOW(), NOW())";
 
 }

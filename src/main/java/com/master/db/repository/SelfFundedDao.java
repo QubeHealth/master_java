@@ -11,7 +11,6 @@ import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
 import com.master.core.constants.Queries;
-import com.master.db.model.EmailerItems;
 import com.master.db.model.PrefundedDocument;
 import com.master.db.model.PrefundedEmailers;
 
@@ -32,4 +31,6 @@ public interface SelfFundedDao {
     @SqlUpdate(Queries.INSERT_EMAILER_ITEMS_BY_KHID)
     @GetGeneratedKeys("id")
     Long setEmailItems (@BindMap Map<String, Object> insertData);
+
+
 }
