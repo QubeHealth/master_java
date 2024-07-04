@@ -1,11 +1,19 @@
 package com.master.controller;
 
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.jdbi.v3.core.Jdbi;
+import org.json.JSONObject;
 
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
@@ -18,10 +26,15 @@ import com.master.core.validations.HspIdSchema;
 import com.master.core.validations.SaveHspBrandName;
 import com.master.core.validations.PaymentSchemas.BankSchema;
 import com.master.core.validations.PaymentSchemas.MobileSchema;
+import com.master.core.validations.PaymentSchemas.QrDataSchema;
 import com.master.core.validations.PaymentSchemas.QrSchema;
 import com.master.core.validations.PaymentSchemas.VpaSchemas;
 import com.master.db.model.Hsp;
+import com.master.db.model.HspMetadata;
+import com.master.db.model.PartnerCategory;
 import com.master.services.HspService;
+import com.master.services.PartnershipService;
+import com.master.utility.GcpFileUpload;
 import com.master.utility.Helper;
 import com.master.utility.sqs.ExecutionsConstants;
 import com.master.utility.sqs.Producer;
@@ -43,12 +56,14 @@ import jakarta.ws.rs.core.Response;
 public class HspController extends BaseController {
     private LinkageNwService linkageNwService;
     private HspService hspService;
+    private PartnershipService partnershipService;
 
     public HspController(MasterConfiguration configuration, Validator validator, Jdbi jdbi) {
         super(configuration, validator, jdbi);
 
         this.linkageNwService = new LinkageNwService(configuration);
         this.hspService = new HspService(configuration, jdbi);
+        this.partnershipService = new PartnershipService(configuration, jdbi);
     }
 
     private Response response(Response.Status status, Object data) {
@@ -397,4 +412,143 @@ public class HspController extends BaseController {
         }
         return healthKeyword;
     }
+
+    @POST
+    @Path("/saveHspBank")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response saveHspBank(@Context HttpServletRequest request,
+            @FormDataParam("hsp_id") String hspId,
+            @FormDataParam("hsp_contact") String hspContact,
+            @FormDataParam("location") String location,
+            @FormDataParam("file") FormDataBodyPart fileDetail) {
+        try {
+            final String userId = request.getAttribute("user_id").toString();
+
+            if (hspId == null || hspId.isBlank()) {
+                return response(Response.Status.BAD_REQUEST,
+                        new ApiResponse<>(false, "HSP ID is required", null));
+            }
+
+            if (hspContact == null || hspContact.isBlank() || !hspContact.matches("^[6-9]\\d{9}$")) {
+                return response(Response.Status.BAD_REQUEST,
+                        new ApiResponse<>(false, "Please enter a valid hsp contact number", null));
+            }
+
+            boolean res = false;
+
+            Integer updateRes = this.hspService.updateHspLocation(location, hspContact, hspId);
+            System.out.println("HSP Location Update => " + updateRes);
+
+            if (updateRes != null) {
+                res = true;
+            }
+
+            if (fileDetail != null) {
+                String contentType = fileDetail.getMediaType().toString();
+
+                if (!Constants.VALID_IMAGE_FORMAT.contains(contentType)) {
+                    return response(Response.Status.BAD_REQUEST,
+                            new ApiResponse<>(false, "Invalid file (Allowed formats: jpg/jpeg/png)", null));
+                }
+
+                LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
+                String formattedDateTime = localDateTime.format(formatter);
+
+                String fileName = String.format("/%s_%s.%s", hspId, formattedDateTime,
+                        contentType.substring(contentType.lastIndexOf('/') + 1));
+
+                System.out.println("File name => " + fileName);
+                String outputFilePath = Helper.md5Encryption(userId) + fileName;
+
+                String base64Img = Base64.getEncoder()
+                        .encodeToString(fileDetail.getEntityAs(InputStream.class).readAllBytes());
+
+                ApiResponse<String> uploadRes = GcpFileUpload.uploadFile(
+                        GcpFileUpload.USER_DATA_BUCKET,
+                        outputFilePath,
+                        base64Img,
+                        contentType,
+                        true);
+
+                res = uploadRes.getStatus();
+                System.out.println("File upload response => " + Helper.toJsonString(uploadRes));
+            }
+
+            return response(Response.Status.OK,
+                    new ApiResponse<>(res, res ? "Success" : "Failed", null));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return response(Response.Status.FORBIDDEN,
+                    new ApiResponse<>(false, "Something went wrong", e));
+        }
+    }
+
+    @POST
+    @Path("/saveQrData")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response saveQrData(@Context HttpServletRequest request,
+            QrDataSchema body) {
+
+        // parse the normal upi url
+        QrInfo parsedQr = Helper.parseUPIUrl(body.getUpiQrUrl());
+
+        if (parsedQr == null) {
+            parsedQr = Helper.parseEMVQR(body.getUpiQrUrl());
+        }
+        String bankAccountName = null;
+
+        if (body.getLevel().equals("MCC_CODE") || body.getLevel().equals("MERCHANT_NAME_QR")) {
+            bankAccountName = hspService.validateOnBankAccountName(parsedQr.getVpa(), body.getHspId());
+            if (bankAccountName == null) {
+                return response(Response.Status.BAD_REQUEST,
+                        new ApiResponse<>(false, "Failed to get the bank account name", null));
+            }
+        }
+
+        Map<String, Object> qrInsertData = new HashMap<>();
+
+        qrInsertData.put("user_id", body.getUserId());
+        qrInsertData.put("hsp_id", body.getHspId());
+        qrInsertData.put("qr_url", body.getUpiQrUrl());
+        qrInsertData.put("vpa", parsedQr.getVpa());
+        qrInsertData.put("mcc_code", parsedQr.getMccCode().isBlank() ? null : parsedQr.getMccCode());
+        qrInsertData.put("merchant_name", parsedQr.getMerchantName());
+
+        qrInsertData.put("bank_account_name", bankAccountName == null ? body.getBankAccountName() : bankAccountName);
+        qrInsertData.put("keyword", body.getKeyword());
+
+        qrInsertData.put("is_valid", body.isValid());
+        qrInsertData.put("merchant_city", parsedQr.getMerchantCity());
+        qrInsertData.put("pincode", parsedQr.getMerchantPincode());
+        qrInsertData.put("level", body.getLevel());
+
+        qrInsertData.put("amount", parsedQr.getAmount());
+        qrInsertData.put("txn_id", parsedQr.getTransactionId());
+        qrInsertData.put("qr_expiry", null);
+
+        Long insertId = hspService.insertHspQrData(qrInsertData);
+        if (insertId == null) {
+            return response(Response.Status.FORBIDDEN, new ApiResponse<>(false, "Failed to save qr data", null));
+        }
+
+        if (body.isValid() && bankAccountName != null) {
+
+            PartnerCategory partnerCategory = hspService.getPartnerCategory("partnership_category");
+            JSONObject jsonObject = new JSONObject(partnerCategory.getJson1());
+            Map<String, Object> categoryMap = Helper.jsonToMap(jsonObject);
+
+            boolean success = this.partnershipService.addPartnershipDetails(body.getHspId(), bankAccountName,
+                    categoryMap);
+            if (!success) {
+                return response(Response.Status.FORBIDDEN,
+                        new ApiResponse<>(false, "Failed to add data in hspmdetadata", null));
+            }
+        }
+
+        return response(Response.Status.OK, new ApiResponse<>(true, "Data inserted successfully", null));
+    }
+
 }

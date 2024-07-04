@@ -1,7 +1,9 @@
 package com.master;
 
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.jdbi.v3.core.Jdbi;
 
+import com.master.controller.PartnershipController;
 import com.master.controller.HspController;
 import com.master.controller.SelfFundedController;
 import com.master.utility.AuthFilter;
@@ -43,23 +45,25 @@ public class MasterApplication extends Application<MasterConfiguration> {
 
         JwtAuthenticationFilter jwtauthenticationFilter = new JwtAuthenticationFilter(
                 configuration.getJwtTokenSignature());
+        environment.servlets().addFilter("jwt-token", jwtauthenticationFilter)
+                .addMappingForUrlPatterns(null, true, "/api/master/*", "/api/hsp/saveHspBank");
 
         AuthFilter cAuthFilter = new AuthFilter(configuration.getxApiKey(), configuration.getAuthorizationKey());
-        environment.servlets().addFilter("jwt-token", jwtauthenticationFilter)
-                .addMappingForUrlPatterns(null, true, "/api/master/*");
 
         environment.servlets().addFilter("auth-filter", cAuthFilter)
-                .addMappingForUrlPatterns(null, true, "/api/master/*");
+                .addMappingForUrlPatterns(null, true, "/api/master/*", "/api/hsp/*");
 
         HspController hspController = new HspController(configuration, validator, jdbi);
         SelfFundedController selfFundedController = new SelfFundedController(configuration, validator, jdbi);
         QueueConnection queueConnection = new QueueConnection(configuration);
-
+        PartnershipController partnershipController= new PartnershipController(configuration, validator, jdbi);
 
         environment.jersey().register(hspController);
         environment.jersey().register(selfFundedController);
         environment.jersey().register(queueConnection);
+        environment.jersey().register(MultiPartFeature.class);
 
+        environment.jersey().register(partnershipController);
     }
 
 }

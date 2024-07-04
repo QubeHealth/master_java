@@ -1,5 +1,7 @@
 package com.master.core.constants;
 
+import java.util.List;
+
 public abstract class Constants {
 
     public static final class QrConstants {
@@ -18,6 +20,8 @@ public abstract class Constants {
 
     public static final Long OTHER_HOSPITALS = (long) 4;
     public static final Long PARTNER_HOSPITALS = (long) 1;
+
+    public static final List<String> VALID_IMAGE_FORMAT = List.of("image/jpg", "image/jpeg", "image/png");
 
     public static final String[] HSP_KEYWORDS = {
             "vascular surgery",
