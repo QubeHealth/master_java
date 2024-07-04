@@ -24,13 +24,12 @@ public interface SelfFundedDao {
     @RegisterBeanMapper(PrefundedDocument.class)
     List<PrefundedDocument> getSelfFundedDataByBranch(@Bind("branchId") Long branch);
 
-    @SqlUpdate(Queries.INSERT_EMAILER_DATA_BY_KHID)
+    @SqlUpdate(Queries.INSERT_EMAILER_DATA)
     @RegisterBeanMapper(PrefundedEmailers.class)
     int setEmailerData (@BindMap Map<String, Object> insertData);
 
-    @SqlUpdate(Queries.INSERT_EMAILER_ITEMS_BY_KHID)
+    @SqlUpdate(Queries.INSERT_EMAILER_ITEMS_BY_TPA_DESK_ID)
     @GetGeneratedKeys("id")
     Long setEmailItems (@BindMap Map<String, Object> insertData);
-
 
 }

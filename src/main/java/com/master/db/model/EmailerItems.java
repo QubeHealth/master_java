@@ -10,13 +10,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EmailerItems {
-    @JsonProperty("KH_id")
-    private String khId;
+    @JsonProperty("tpa_desk_id")
+    private String tpaDeskId;
 
     @JsonProperty("claim_no")
     private String claimNo;
 
-    private String policy;
+    @JsonProperty("policy_no")
+    private String policyNo;
     
     @JsonProperty("initial_amt_req")
     private String initialAmtReq;
@@ -29,6 +30,12 @@ public class EmailerItems {
 
     @JsonProperty("inal_adj_amt_approved")
     private String finalAdjAmtApproved;
+
+    @JsonProperty("patient_name")
+    private String patientName;
+
+    @JsonProperty("metadata")
+    private String metadata;
 
 
 }

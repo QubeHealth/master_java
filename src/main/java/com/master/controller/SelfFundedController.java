@@ -85,7 +85,7 @@ public class SelfFundedController extends BaseController {
         }
 
         @POST
-        @Path("/emailInsert")
+        @Path("/prefundedEmailer")
         @Produces(MediaType.APPLICATION_JSON)
         @Consumes(MediaType.APPLICATION_JSON)
         public Response emailInsert(PrefundedEmailers body){
@@ -135,13 +135,15 @@ public class SelfFundedController extends BaseController {
                 SelfFundedDao selfFundedDao = jdbi.onDemand(SelfFundedDao.class);
 
                 Map<String, Object> bodyMap = new HashMap<>();
-                bodyMap.put("KH_id",body.getKhId());
+                bodyMap.put("tpa_desk_id",body.getTpaDeskId());
                 bodyMap.put("claim_no",body.getClaimNo()==null?null:body.getClaimNo());
-                bodyMap.put("policy",body.getPolicy()==null?null:body.getPolicy());
+                bodyMap.put("policy",body.getPolicyNo()==null?null:body.getPolicyNo());
                 bodyMap.put("initial_amt_req",body.getInitialAmtReq()==null?null:body.getInitialAmtReq());
                 bodyMap.put("initial_amt_approved",body.getInitialAmtApproved()==null?null:body.getInitialAmtApproved());
                 bodyMap.put("final_adj_amt_req",body.getFinalAdjAmtReq()==null?null:body.getFinalAdjAmtReq());
                 bodyMap.put("final_adj_amt_approved",body.getFinalAdjAmtApproved()==null?null:body.getFinalAdjAmtApproved());
+                bodyMap.put("patient_name",body.getPatientName()==null?null:body.getPatientName());
+                bodyMap.put("metadata", body.getMetadata());
 
                 Long getEmailItems = selfFundedDao.setEmailItems(bodyMap);
 

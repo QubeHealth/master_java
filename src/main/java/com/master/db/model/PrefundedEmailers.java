@@ -20,4 +20,6 @@ public class PrefundedEmailers {
     @JsonProperty("claim_no")
     private String claimNo;
 
+    @JsonProperty("pf_request_id")
+    private String pfReqId;
 }
