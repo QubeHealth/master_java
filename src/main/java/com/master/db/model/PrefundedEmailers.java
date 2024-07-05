@@ -21,5 +21,5 @@ public class PrefundedEmailers {
     private String claimNo;
 
     @JsonProperty("pf_request_id")
-    private String pfReqId;
+    private String pfRequestId;
 }
