@@ -136,7 +136,7 @@ public class SelfFundedController extends BaseController {
                 SelfFundedDao selfFundedDao = jdbi.onDemand(SelfFundedDao.class);
 
                 Map<String, Object> bodyMap = new HashMap<>();
-                bodyMap.put("tpa_desk_id",body.getTpaDeskId());
+                bodyMap.put("tpa_desk_id",body.getTpaDeskId()==null?null:body.getTpaDeskId());
                 bodyMap.put("claim_no",body.getClaimNo()==null?null:body.getClaimNo());
                 bodyMap.put("policy",body.getPolicyNo()==null?null:body.getPolicyNo());
                 bodyMap.put("initial_amt_req",body.getInitialAmtReq()==null?null:body.getInitialAmtReq());
