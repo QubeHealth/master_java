@@ -108,7 +108,7 @@ public class SelfFundedController extends BaseController {
                 bodyMap.put("is_active",true);
                 bodyMap.put("partnered_claim_no",body.getPartneredClaimNo()==null?null:body.getPartneredClaimNo());
                 bodyMap.put("pf_request_id", body.getPfRequestId()==null?null:body.getPfRequestId());
-                Integer getEmailInsert = selfFundedDao.setEmailerData(bodyMap);
+                Long getEmailInsert = selfFundedDao.setEmailerData(bodyMap);
 
                 return Response.status(Response.Status.OK)
                                 .entity(new ApiResponse<>(true,

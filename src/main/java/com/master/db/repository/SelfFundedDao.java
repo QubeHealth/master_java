@@ -25,8 +25,8 @@ public interface SelfFundedDao {
     List<PrefundedDocument> getSelfFundedDataByBranch(@Bind("branchId") Long branch);
 
     @SqlUpdate(Queries.INSERT_EMAILER_DATA)
-    @RegisterBeanMapper(PrefundedEmailers.class)
-    int setEmailerData (@BindMap Map<String, Object> insertData);
+    @GetGeneratedKeys("id")
+    Long setEmailerData (@BindMap Map<String, Object> insertData);
 
     @SqlUpdate(Queries.INSERT_EMAILER_ITEMS_BY_TPA_DESK_ID)
     @GetGeneratedKeys("id")
