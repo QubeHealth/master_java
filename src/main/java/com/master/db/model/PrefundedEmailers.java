@@ -17,8 +17,8 @@ public class PrefundedEmailers {
     @JsonProperty("is_active")
     private boolean isActive;
 
-    @JsonProperty("claim_no")
-    private String claimNo;
+    @JsonProperty("partnered_claim_no")
+    private String partneredClaimNo;
 
     @JsonProperty("pf_request_id")
     private String pfRequestId;
