@@ -18,7 +18,7 @@ public interface SelfFundedDao {
 
     @SqlQuery(Queries.GET_SELF_FUNDED_DOCUMENTS_BY_HSP)
     @RegisterBeanMapper(PrefundedDocument.class)
-    List< PrefundedDocument> getSelfFundedDataByHsp(@Bind("hspId") Long hspId);
+    List<PrefundedDocument> getSelfFundedDataByHsp(@Bind("hspId") Long hspId);
 
     @SqlQuery(Queries.GET_SELF_FUNDED_DOCUMENTS_BY_BRANCH)
     @RegisterBeanMapper(PrefundedDocument.class)
@@ -26,10 +26,10 @@ public interface SelfFundedDao {
 
     @SqlUpdate(Queries.INSERT_EMAILER_DATA)
     @GetGeneratedKeys("id")
-    Long setEmailerData (@BindMap Map<String, Object> insertData);
+    Long setEmailerData(@BindMap Map<String, Object> insertData);
 
     @SqlUpdate(Queries.INSERT_EMAILER_ITEMS_BY_TPA_DESK_ID)
     @GetGeneratedKeys("id")
-    Long setEmailItems (@BindMap Map<String, Object> insertData);
+    Long setEmailItems(@BindMap Map<String, Object> insertData);
 
 }

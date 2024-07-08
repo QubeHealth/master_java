@@ -18,7 +18,7 @@ public class EmailerItems {
 
     @JsonProperty("policy_no")
     private String policyNo;
-    
+
     @JsonProperty("initial_amt_req")
     private String initialAmtReq;
 
@@ -36,6 +36,5 @@ public class EmailerItems {
 
     @JsonProperty("metadata")
     private String metadata;
-
 
 }

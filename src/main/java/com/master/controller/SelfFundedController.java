@@ -88,7 +88,7 @@ public class SelfFundedController extends BaseController {
         @Path("/prefundedEmailer")
         @Produces(MediaType.APPLICATION_JSON)
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response emailInsert(PrefundedEmailers body){
+        public Response emailInsert(PrefundedEmailers body) {
                 Set<ConstraintViolation<PrefundedEmailers>> violations = validator.validate(body);
                 if (!violations.isEmpty()) {
                         // Construct error message from violations
@@ -103,11 +103,12 @@ public class SelfFundedController extends BaseController {
                 SelfFundedDao selfFundedDao = jdbi.onDemand(SelfFundedDao.class);
 
                 Map<String, Object> bodyMap = new HashMap<>();
-                bodyMap.put("type",body.getType());
-                bodyMap.put("subject",body.getSubject());
-                bodyMap.put("is_active",true);
-                bodyMap.put("partnered_claim_no",body.getPartneredClaimNo()==null?null:body.getPartneredClaimNo());
-                bodyMap.put("pf_request_id", body.getPfRequestId()==null?null:body.getPfRequestId());
+                bodyMap.put("type", body.getType());
+                bodyMap.put("subject", body.getSubject());
+                bodyMap.put("is_active", true);
+                bodyMap.put("partnered_claim_no",
+                                body.getPartneredClaimNo() == null ? null : body.getPartneredClaimNo());
+                bodyMap.put("pf_request_id", body.getPfRequestId() == null ? null : body.getPfRequestId());
                 Long getEmailInsert = selfFundedDao.setEmailerData(bodyMap);
 
                 return Response.status(Response.Status.OK)
@@ -121,7 +122,7 @@ public class SelfFundedController extends BaseController {
         @Path("/emailItems")
         @Produces(MediaType.APPLICATION_JSON)
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response emailInsert(EmailerItems body){
+        public Response emailInsert(EmailerItems body) {
                 Set<ConstraintViolation<EmailerItems>> violations = validator.validate(body);
                 if (!violations.isEmpty()) {
                         // Construct error message from violations
@@ -136,24 +137,26 @@ public class SelfFundedController extends BaseController {
                 SelfFundedDao selfFundedDao = jdbi.onDemand(SelfFundedDao.class);
 
                 Map<String, Object> bodyMap = new HashMap<>();
-                bodyMap.put("tpa_desk_id",body.getTpaDeskId()==null?null:body.getTpaDeskId());
-                bodyMap.put("claim_no",body.getClaimNo()==null?null:body.getClaimNo());
-                bodyMap.put("policy_no",body.getPolicyNo()==null?null:body.getPolicyNo());
-                bodyMap.put("initial_amt_req",body.getInitialAmtReq()==null?null:body.getInitialAmtReq());
-                bodyMap.put("initial_amt_approved",body.getInitialAmtApproved()==null?null:body.getInitialAmtApproved());
-                bodyMap.put("final_adj_amt_req",body.getFinalAdjAmtReq()==null?null:body.getFinalAdjAmtReq());
-                bodyMap.put("final_adj_amt_approved",body.getFinalAdjAmtApproved()==null?null:body.getFinalAdjAmtApproved());
-                bodyMap.put("patient_name",body.getPatientName()==null?null:body.getPatientName());
+                bodyMap.put("tpa_desk_id", body.getTpaDeskId() == null ? null : body.getTpaDeskId());
+                bodyMap.put("claim_no", body.getClaimNo() == null ? null : body.getClaimNo());
+                bodyMap.put("policy_no", body.getPolicyNo() == null ? null : body.getPolicyNo());
+                bodyMap.put("initial_amt_req", body.getInitialAmtReq() == null ? null : body.getInitialAmtReq());
+                bodyMap.put("initial_amt_approved",
+                                body.getInitialAmtApproved() == null ? null : body.getInitialAmtApproved());
+                bodyMap.put("final_adj_amt_req", body.getFinalAdjAmtReq() == null ? null : body.getFinalAdjAmtReq());
+                bodyMap.put("final_adj_amt_approved",
+                                body.getFinalAdjAmtApproved() == null ? null : body.getFinalAdjAmtApproved());
+                bodyMap.put("patient_name", body.getPatientName() == null ? null : body.getPatientName());
                 bodyMap.put("metadata", body.getMetadata());
 
                 Long getEmailItems = selfFundedDao.setEmailItems(bodyMap);
 
-                if(getEmailItems == null){
+                if (getEmailItems == null) {
                         return Response.status(Response.Status.OK)
-                                .entity(new ApiResponse<>(true,
-                                                "Data insertion failed",
-                                                getEmailItems))
-                                .build();
+                                        .entity(new ApiResponse<>(true,
+                                                        "Data insertion failed",
+                                                        getEmailItems))
+                                        .build();
                 }
                 return Response.status(Response.Status.OK)
                                 .entity(new ApiResponse<>(true,
