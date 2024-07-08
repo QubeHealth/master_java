@@ -22,4 +22,7 @@ public class PrefundedEmailers {
 
     @JsonProperty("pf_request_id")
     private String pfRequestId;
+
+    @JsonProperty("policy_no")
+    private String policyNo;
 }
