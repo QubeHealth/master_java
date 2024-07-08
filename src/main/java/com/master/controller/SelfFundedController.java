@@ -138,7 +138,7 @@ public class SelfFundedController extends BaseController {
                 Map<String, Object> bodyMap = new HashMap<>();
                 bodyMap.put("tpa_desk_id",body.getTpaDeskId()==null?null:body.getTpaDeskId());
                 bodyMap.put("claim_no",body.getClaimNo()==null?null:body.getClaimNo());
-                bodyMap.put("policy",body.getPolicyNo()==null?null:body.getPolicyNo());
+                bodyMap.put("policy_no",body.getPolicyNo()==null?null:body.getPolicyNo());
                 bodyMap.put("initial_amt_req",body.getInitialAmtReq()==null?null:body.getInitialAmtReq());
                 bodyMap.put("initial_amt_approved",body.getInitialAmtApproved()==null?null:body.getInitialAmtApproved());
                 bodyMap.put("final_adj_amt_req",body.getFinalAdjAmtReq()==null?null:body.getFinalAdjAmtReq());
