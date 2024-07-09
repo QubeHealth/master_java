@@ -25,4 +25,7 @@ public class PrefundedEmailers {
 
     @JsonProperty("policy_no")
     private String policyNo;
+
+    @JsonProperty("claim_no")
+    private String claimNo;
 }
