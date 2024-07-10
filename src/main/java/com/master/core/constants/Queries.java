@@ -38,4 +38,5 @@ public abstract class Queries {
         public static final String INSERT_ADJUDICATION_DATA = "INSERT INTO tbl_adjudication_data (user_id, offer_id, hsp_id, document_id, associated_user_id, status, created_by, requested_by, created_at, updated_at) "
                         + "VALUES (:userId, :offerId, :hspId, :documentId, :associatedUserId, :status, :createdBy, :requestedBy, NOW(), NOW())";
 
+        public static final String GET_EMAIL_TEMPLATE = "SELECT json FROM tbl_emailer_templates WHERE types = :types"; 
 }

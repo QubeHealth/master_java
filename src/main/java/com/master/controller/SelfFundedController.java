@@ -10,6 +10,7 @@ import org.jdbi.v3.core.Jdbi;
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
 import com.master.api.SelfFundedDocuments;
+import com.master.core.validations.EmailerTemplateSchema;
 import com.master.core.validations.SelfFundedDataSchema;
 import com.master.db.model.EmailerItems;
 import com.master.db.model.PrefundedDocument;
@@ -109,8 +110,8 @@ public class SelfFundedController extends BaseController {
                 bodyMap.put("partnered_claim_no",
                                 body.getPartneredClaimNo() == null ? null : body.getPartneredClaimNo());
                 bodyMap.put("pf_request_id", body.getPfRequestId() == null ? null : body.getPfRequestId());
-                bodyMap.put("policy_no", body.getPolicyNo()==null?null:body.getPolicyNo());
-                bodyMap.put("claim_no", body.getClaimNo()==null?null:body.getClaimNo());
+                bodyMap.put("policy_no", body.getPolicyNo() == null ? null : body.getPolicyNo());
+                bodyMap.put("claim_no", body.getClaimNo() == null ? null : body.getClaimNo());
                 Long getEmailInsert = selfFundedDao.setEmailerData(bodyMap);
 
                 return Response.status(Response.Status.OK)
@@ -167,4 +168,35 @@ public class SelfFundedController extends BaseController {
                                 .build();
         }
 
+        @POST
+        @Path("/emailTemplate")
+        @Produces(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response emailInsert(EmailerTemplateSchema body) {
+                Set<ConstraintViolation<EmailerTemplateSchema>> violations = validator.validate(body);
+                if (!violations.isEmpty()) {
+                        // Construct error message from violations
+                        String errorMessage = violations.stream()
+                                        .map(ConstraintViolation::getMessage)
+                                        .reduce("", (acc, msg) -> acc.isEmpty() ? msg : acc + "; " + msg);
+                        return Response.status(Response.Status.BAD_REQUEST)
+                                        .entity(new ApiResponse<>(false, errorMessage, null))
+                                        .build();
+                }
+                SelfFundedDao selfFundedDao = jdbi.onDemand(SelfFundedDao.class);
+                String template = selfFundedDao.getEmailTemplate(body.getKeyword());
+
+                if (template == null) {
+                        return Response.status(Response.Status.OK)
+                                        .entity(new ApiResponse<>(true,
+                                                        "No such template found",
+                                                        null))
+                                        .build();
+                }
+                return Response.status(Response.Status.OK)
+                                .entity(new ApiResponse<>(true,
+                                                "Template found",
+                                                template))
+                                .build();
+        }
 }
