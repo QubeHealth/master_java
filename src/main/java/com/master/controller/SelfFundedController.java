@@ -9,7 +9,9 @@ import org.jdbi.v3.core.Jdbi;
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
 import com.master.api.SelfFundedDocuments;
+import com.master.core.validations.MiscDataSchema;
 import com.master.core.validations.SelfFundedDataSchema;
+import com.master.db.model.Miscellaneous;
 import com.master.db.model.PrefundedDocument;
 import com.master.services.SelfFundedService;
 
@@ -80,4 +82,16 @@ public class SelfFundedController extends BaseController {
                                 .build();
         }
 
+        @POST
+        @Path("/instructions")
+        @Produces(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response getInstructions(MiscDataSchema reqBody) {
+                Miscellaneous response = service.getSelfFundedInstructions(reqBody.getKey(), reqBody.getColumn());
+                return Response.status(Response.Status.OK)
+                                .entity(new ApiResponse<>(true,
+                                                "Successfully fetched",
+                                                response))
+                                .build();
+        }
 }

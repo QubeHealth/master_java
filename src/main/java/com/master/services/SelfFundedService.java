@@ -66,4 +66,15 @@ public class SelfFundedService extends BaseService {
             return null;
         }
     }
+    
+    public Miscellaneous getSelfFundedInstructions(String key, String column) {
+        try {
+            MiscDao miscDao = jdbi.onDemand(MiscDao.class);
+            return miscDao.getSelfFundedInstructions(key,column);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 }

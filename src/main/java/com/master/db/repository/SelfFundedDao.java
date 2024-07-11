@@ -18,4 +18,5 @@ public interface SelfFundedDao {
     @SqlQuery(Queries.GET_SELF_FUNDED_DOCUMENTS_BY_BRANCH)
     @RegisterBeanMapper(PrefundedDocument.class)
     List<PrefundedDocument> getSelfFundedDataByBranch(@Bind("branchId") Long branch);
+
 }

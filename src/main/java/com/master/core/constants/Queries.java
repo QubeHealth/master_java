@@ -67,4 +67,6 @@ public abstract class Queries {
                         + " WHERE (hsp.vpa_row_num = 1 OR hsp.bank_row_num = 1) "
                         + " ORDER BY TRIM(BOTH ' ' FROM hsp.hospital_name); ";
 
+        public static final String GET_SELF_FUNDED_INSTRUCTIONS = " SELECT :column FROM masters.tbl_miscellaneous WHERE `key` = :data";
+
 }
