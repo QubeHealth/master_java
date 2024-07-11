@@ -85,7 +85,7 @@ public class SelfFundedController extends BaseController {
         }
 
         @POST
-        @Path("/hspBankDetails")
+        @Path("/branches")
         @Produces(MediaType.APPLICATION_JSON)
         @Consumes(MediaType.APPLICATION_JSON)
         public Response getBankDetails() {
