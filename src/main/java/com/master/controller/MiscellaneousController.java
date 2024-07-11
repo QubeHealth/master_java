@@ -62,10 +62,12 @@ public class MiscellaneousController extends BaseController {
             JSONObject jsonWrapper = new JSONObject();
             jsonWrapper.put("json_1", jsonContent);
 
+            Map<String, Object> mapJson = new HashMap<>();
+            mapJson = Helper.jsonToMap(jsonWrapper);
             return Response.status(Response.Status.OK)
                 .entity(new ApiResponse<>(true,
                         "Successfully fetched",
-                        jsonWrapper))
+                        mapJson))
                 .build();
         }
         return Response.status(Response.Status.OK)
