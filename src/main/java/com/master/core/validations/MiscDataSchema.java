@@ -4,6 +4,8 @@ import lombok.Data;
 
 @Data
 public class MiscDataSchema {
-    private String column; 
+
+    private String column;
+
     private String key;
 }

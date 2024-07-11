@@ -1,5 +1,6 @@
 package com.master.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -87,11 +88,17 @@ public class SelfFundedController extends BaseController {
         @Produces(MediaType.APPLICATION_JSON)
         @Consumes(MediaType.APPLICATION_JSON)
         public Response getInstructions(MiscDataSchema reqBody) {
-                Miscellaneous response = service.getSelfFundedInstructions(reqBody.getKey(), reqBody.getColumn());
+                Miscellaneous response = service.getSelfFundedInstructions(reqBody.getKey());
+                Map<String, Object> responseMap = new HashMap<>();
+                responseMap.put("decimal_value1", response.getDecimalValue1());
+                responseMap.put("decimal_value2", response.getDecimalValue2());
+                responseMap.put("string1", response.getString1());
+                responseMap.put("string2", response.getString2());
+                responseMap.put("json_1", response.getJson1());
                 return Response.status(Response.Status.OK)
                                 .entity(new ApiResponse<>(true,
                                                 "Successfully fetched",
-                                                response))
+                                                responseMap.get(reqBody.getColumn())))
                                 .build();
         }
 }

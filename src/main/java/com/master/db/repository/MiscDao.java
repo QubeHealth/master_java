@@ -2,6 +2,7 @@ package com.master.db.repository;
 
 import org.jdbi.v3.sqlobject.config.RegisterBeanMapper;
 import org.jdbi.v3.sqlobject.customizer.Bind;
+import org.jdbi.v3.sqlobject.customizer.Define;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 
 import com.master.core.constants.Queries;
@@ -20,6 +21,6 @@ public interface MiscDao {
 
     @SqlQuery(Queries.GET_SELF_FUNDED_INSTRUCTIONS)
     @RegisterBeanMapper(Miscellaneous.class)
-    Miscellaneous getSelfFundedInstructions(@Bind("data") String data, @Bind("column") String column);
+    Miscellaneous getSelfFundedInstructions(@Bind("data") String data);
 
 }
