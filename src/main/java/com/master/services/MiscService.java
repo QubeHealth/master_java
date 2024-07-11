@@ -13,10 +13,10 @@ public class MiscService extends BaseService{
 
     }
 
-    public Miscellaneous getSelfFundedInstructions(String key) {
+    public Miscellaneous getMiscData(String key, String columnNames) {
         try {
             MiscDao miscDao = jdbi.onDemand(MiscDao.class);
-            return miscDao.getSelfFundedInstructions(key);
+            return miscDao.getSelfFundedInstructions(key, columnNames);
         } catch (Exception e) {
             e.printStackTrace();
             return null;

@@ -21,6 +21,6 @@ public interface MiscDao {
 
     @SqlQuery(Queries.GET_SELF_FUNDED_INSTRUCTIONS)
     @RegisterBeanMapper(Miscellaneous.class)
-    Miscellaneous getSelfFundedInstructions(@Bind("data") String data);
+    Miscellaneous getSelfFundedInstructions(@Bind("data") String data, @Define("column_names") String columnNames);
 
 }
