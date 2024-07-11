@@ -13,6 +13,7 @@ import com.master.api.SelfFundedDocuments;
 import com.master.core.validations.MiscDataSchema;
 import com.master.core.validations.SelfFundedDataSchema;
 import com.master.db.model.Miscellaneous;
+import com.master.db.model.PrefundedBankDetails;
 import com.master.db.model.PrefundedDocument;
 import com.master.services.SelfFundedService;
 
@@ -81,6 +82,30 @@ public class SelfFundedController extends BaseController {
                                                 "Successfully fetched",
                                                 response))
                                 .build();
+        }
+
+        @POST
+        @Path("/hspBankDetails")
+        @Produces(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response getBankDetails() {
+
+                List<PrefundedBankDetails> bankDetails = null;
+                bankDetails = this.service.getSelfFundedHspDetails();
+                if (bankDetails == null) {
+                        Response.status(Response.Status.EXPECTATION_FAILED)
+                                        .entity(new ApiResponse<>(false,
+                                                        "No records found",
+                                                        bankDetails))
+                                        .build();
+                }
+
+                return Response.status(Response.Status.OK)
+                                .entity(new ApiResponse<>(true,
+                                                "Successfully fetched",
+                                                bankDetails))
+                                .build();
+
         }
 
 }
