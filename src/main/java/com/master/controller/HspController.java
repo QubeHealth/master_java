@@ -20,6 +20,7 @@ import com.master.api.ApiResponse;
 import com.master.api.InsertHspBrandName;
 import com.master.api.QrData.QrInfo;
 import com.master.api.QrData.QrResponse;
+import com.master.api.QrData.QubeQr;
 import com.master.client.LinkageNwService;
 import com.master.core.constants.Constants;
 import com.master.core.validations.HspIdSchema;
@@ -266,7 +267,10 @@ public class HspController extends BaseController {
             return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, errorMessage, null));
         }
 
-        final Long userId = (Long) request.getAttribute("user_id");
+        QrResponse qrResponse = this.hspService.validateQubeQr(body);
+        if (qrResponse.getStatus()!= null && qrResponse.getStatus().equals("VALID_HSP")) {
+            return response(Response.Status.OK, new ApiResponse<>(true, "Qube Hsp verified", qrResponse));
+        }
 
         // parse the normal upi url
         QrInfo parsedQr = Helper.parseUPIUrl(body.getUpiQrUrl());
@@ -280,7 +284,6 @@ public class HspController extends BaseController {
             return response(Response.Status.FORBIDDEN, new ApiResponse<>(false, "Invalid qr format", null));
         }
 
-        QrResponse qrResponse = new QrResponse();
         qrResponse.setVpa(parsedQr.getVpa());
         qrResponse.setMerchantName(parsedQr.getMerchantName());
 
@@ -291,7 +294,7 @@ public class HspController extends BaseController {
         rmqMap.put("hsp_id", null);
         rmqMap.put("bank_account_name", null);
         rmqMap.put("keyword", null);
-        rmqMap.put("user_id", userId);
+        rmqMap.put("user_id", request.getAttribute("user_id"));
 
         try {
             // check if dynamic qr

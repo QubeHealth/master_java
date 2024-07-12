@@ -40,4 +40,11 @@ public class QrData {
 
     }
 
+    @Data
+    public static final class QubeQr {
+        private String accountNumber;
+        private String merchantCity;
+        private String ifsc;
+        private String merchantName;
+    }
 }
