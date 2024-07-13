@@ -42,12 +42,12 @@ public class PrefundedDocument {
         this.name = name;
     }
 
-    public String getPreviewLink() {
+    public String getLink() {
         return link;
     }
 
-    public void setPreviewLink(String previewLink) {
-        this.link = previewLink;
+    public void setLink(String link) {
+        this.link = link;
     }
 
     @Override

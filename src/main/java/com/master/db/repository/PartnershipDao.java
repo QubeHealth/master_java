@@ -7,15 +7,21 @@ import org.jdbi.v3.sqlobject.customizer.BindList;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 import com.master.core.constants.Queries;
+import com.master.db.model.Hsp;
 import com.master.db.model.PartnershipSchema;
 
-    public interface PartnershipDao {
+public interface PartnershipDao {
 
-    @SqlQuery(Queries.GET_PARTNERSHIP_HOSPITAL_DETAILS) 
+    @SqlQuery(Queries.GET_PARTNERSHIP_HOSPITAL_DETAILS)
     @RegisterBeanMapper(PartnershipSchema.class)
-    List< PartnershipSchema >getHospitalDetails();
+    List<PartnershipSchema> getHospitalDetails();
 
-    @SqlUpdate(Queries.UPDATE_PARTNERSHIP_HOSPITAL_DETAILS)  
-    Integer savePartnershipDetails(@BindList("hspIds") List<Integer> hspIds, @Bind("category") String category, @Bind("subCategory") String subCategory, @Bind("partner_status") String status);
+    @SqlUpdate(Queries.UPDATE_PARTNERSHIP_HOSPITAL_DETAILS)
+    Integer savePartnershipDetails(@BindList("hspIds") List<Integer> hspIds, @Bind("category") String category,
+            @Bind("subCategory") String subCategory, @Bind("partner_status") String status);
+
+    @SqlQuery(Queries.HSP_PARTNERSHIP_SCRIPT)
+    @RegisterBeanMapper(Hsp.class)
+    List<Hsp> getHspListForPartnership();
+
 }
-

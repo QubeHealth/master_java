@@ -6,25 +6,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.glassfish.jersey.message.internal.Qualified;
 import org.jdbi.v3.core.Jdbi;
-import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.master.MasterConfiguration;
+import com.master.api.ApiResponse;
 import com.master.api.InsertHspBrandName;
-import com.master.core.constants.Queries;
+import com.master.api.QrData.QrResponse;
+import com.master.api.QrData.QubeQr;
+import com.master.client.LinkageNwService;
 import com.master.core.validations.SaveHspBrandName;
 import com.master.core.validations.PaymentSchemas.BankSchema;
+import com.master.core.validations.PaymentSchemas.QrSchema;
 import com.master.db.model.Hsp;
+import com.master.db.model.HspMetadata;
+import com.master.db.model.PartnerCategory;
 import com.master.db.model.GetHspBrandName;
 import com.master.db.repository.HspDao;
+import com.master.db.repository.MiscDao;
+import com.master.utility.Helper;
+
+import jakarta.ws.rs.core.Response;
 
 public class HspService extends BaseService {
 
+    private LinkageNwService linkageNwService;
+
     public HspService(MasterConfiguration configuration, Jdbi jdbi) {
         super(configuration, jdbi);
+        this.linkageNwService = new LinkageNwService(configuration);
     }
 
     public List<Hsp> getHspDataListByIds(List<Integer> hspIds) {
@@ -198,10 +209,104 @@ public class HspService extends BaseService {
 
     }
 
-    public Integer updateHspLocation(String location, String hspId) {
+    public Integer updateHspLocation(String location, String hspContact, String hspId) {
 
         HspDao hspDao = jdbi.onDemand(HspDao.class);
 
-        return hspDao.updateHspLocation(location, hspId);
+        return hspDao.updateHspLocation(location, hspContact, hspId);
     }
+
+    public Long insertHspQrData(Map<String, Object> insertData) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+        return hspDao.insertHspQrData(insertData);
+    }
+
+    public String validateOnBankAccountName(String vpa, String hspId) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        ApiResponse<Object> vpaRes = this.linkageNwService.validateVpa(vpa);
+
+        System.out.println("validateonBankAccoutName => " + Helper.toJsonString(vpaRes));
+
+        if (!vpaRes.getStatus()) {
+            return null;
+        }
+
+        Map<String, Object> vpaData = (Map<String, Object>) vpaRes.getData();
+
+        String bankAccountName = vpaData.get("bank_account_name").toString();
+
+        Integer success = hspDao.updateHospitalOfficialName(hspId, bankAccountName);
+        System.out.println("update hsp bank name " + success);
+        if (success != null) {
+            Hsp hsp = hspDao.getHspName(hspId);
+
+            if (hsp.getHspName().toLowerCase().contains("merchant")) {
+                success = hspDao.updateHospitalName(hspId, bankAccountName);
+                System.out.println("update hsp name " + success);
+            }
+        }
+
+        return bankAccountName;
+    }
+
+    public HspMetadata getHspMetadata(String hspId) {
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+        return hspDao.getHspMetaData(hspId);
+    }
+
+    public PartnerCategory getPartnerCategory(String key) {
+        MiscDao miscDao = jdbi.onDemand(MiscDao.class);
+        return miscDao.getCategoryMisc(key);
+    }
+
+    public Integer insertDataInHspMetadata(String hspId, String category, String subcategory, String keyword) {
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+        return hspDao.updateHspMetadata(hspId, category, subcategory, keyword);
+    }
+
+    public Hsp getQubeQRHsp(BankSchema body) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        Hsp hsp = hspDao.getHspbyBankDetails(body);
+        if (hsp == null || hsp.getStatus() == null) {
+            return null;
+        }
+        return hsp;
+    }
+
+    public QrResponse validateQubeQr(QrSchema body) {
+
+        QrResponse qrResponse = new QrResponse();
+
+        String qubeQrUrl = Helper.decryptData("qubehealth", body.getUpiQrUrl());
+        System.out.println(qubeQrUrl);
+
+        if (qubeQrUrl != null) {
+
+            QubeQr qubeQr = Helper.parseQubeQr(qubeQrUrl);
+
+            if (qubeQr != null && qubeQr.getAccountNumber() != null && qubeQr.getIfsc() != null) {
+                BankSchema req = new BankSchema();
+                req.setAccountNumber(qubeQr.getAccountNumber());
+                req.setIfscCode(qubeQr.getIfsc());
+                Hsp hsp = getQubeQRHsp(req);
+
+                if (hsp != null) {
+                    qrResponse.setBankAccountName(hsp.getHspOfficialName());
+                    qrResponse.setHspId(hsp.getHspId());
+                    qrResponse.setMerchantName(hsp.getHspName());
+                    qrResponse.setStatus("VALID_HSP");
+                    qrResponse.setVpa(hsp.getBankAccountNumber());
+
+                }
+            }
+
+        }
+        return qrResponse;
+    }
+
 }

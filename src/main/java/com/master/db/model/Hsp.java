@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class Hsp {
 
     @JsonProperty("hsp_id")
-    private int hspId;
+    private Integer hspId;
 
     @JsonProperty("hsp_name")
     private String hspName;
