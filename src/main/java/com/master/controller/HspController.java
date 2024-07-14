@@ -517,7 +517,7 @@ public class HspController extends BaseController {
         qrInsertData.put("hsp_id", body.getHspId());
         qrInsertData.put("qr_url", body.getUpiQrUrl());
         qrInsertData.put("vpa", parsedQr.getVpa());
-        qrInsertData.put("mcc_code", parsedQr.getMccCode().isBlank() ? null : parsedQr.getMccCode());
+        qrInsertData.put("mcc_code", parsedQr.getMccCode());
         qrInsertData.put("merchant_name", parsedQr.getMerchantName());
 
         qrInsertData.put("bank_account_name", bankAccountName == null ? body.getBankAccountName() : bankAccountName);
