@@ -21,7 +21,7 @@ public abstract class Queries {
         public static final String GET_HSP_BY_MOBILE = "SELECT id as hsp_id, hospital_name as hsp_name, hsp_official_name, vpa, status from tbl_hsp where hsp_contact = :mobile order by id desc limit 1";
 
         public static final String GET_HSP_BY_BANK = "SELECT id as hsp_id, hospital_name as hsp_name, hsp_official_name, bank_account_number, bank_ifsc, status "
-                        + " from tbl_hsp  where bank_account_number = :accountNumber and bank_ifsc =:ifscCode order by id desc limit 1";
+                        + " from tbl_hsp  where bank_account_number = :accountNumber and bank_ifsc =:ifscCode and is_active = 1 order by id desc limit 1";
 
         public static final String GET_SELF_FUNDED_DETAILS = " SELECT json_1 FROM masters.tbl_miscellaneous WHERE `key` = :data";
 
