@@ -1,5 +1,6 @@
 package com.master.services;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.master.MasterConfiguration;
 import com.master.core.constants.Constants;
 import com.master.db.model.Miscellaneous;
+import com.master.db.model.PrefundedBankDetails;
 import com.master.db.model.PrefundedDocument;
 import com.master.db.repository.MiscDao;
 import com.master.db.repository.SelfFundedDao;
@@ -66,4 +68,10 @@ public class SelfFundedService extends BaseService {
             return null;
         }
     }
+
+    public List<PrefundedBankDetails> getSelfFundedHspDetails() {
+        SelfFundedDao selfFundedDao = jdbi.onDemand(SelfFundedDao.class);
+        return selfFundedDao.getPrefundedBankDetails();
+    }
+
 }

@@ -67,4 +67,10 @@ public abstract class Queries {
                         + " WHERE (hsp.vpa_row_num = 1 OR hsp.bank_row_num = 1) "
                         + " ORDER BY TRIM(BOTH ' ' FROM hsp.hospital_name); ";
 
+        public static final String GET_SELF_FUNDED_INSTRUCTIONS = " SELECT <column_names> FROM masters.tbl_miscellaneous WHERE `key` = :data";
+
+        public static final String GET_SELF_FUNDED_BANK_DETAILS = "SELECT hospital_name, city_name, state, pincode, bank_ifsc, bank_account_number, bank_name, vpa, address, hsp_id FROM masters.tbl_prefunded_branches tpb "
+                        + "INNER JOIN masters.tbl_hsp th " 
+                        + "ON tpb.hsp_id = th.id ;" ;
+        
 }
