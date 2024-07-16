@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jdbi.v3.core.Handle;
 import org.jdbi.v3.core.Jdbi;
 
 import com.master.MasterConfiguration;
@@ -199,4 +200,95 @@ public class SelfFundedController extends BaseController {
                                                 template))
                                 .build();
         }
+
+        @POST
+        @Path("/prefundedEmailFull")
+        @Produces(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response prefundedEmail(PrefundedEmailers body) {
+                Set<ConstraintViolation<PrefundedEmailers>> violations = validator.validate(body);
+                if (!violations.isEmpty()) {
+                        // Construct error message from violations
+                        String errorMessage = violations.stream()
+                                        .map(ConstraintViolation::getMessage)
+                                        .reduce("", (acc, msg) -> acc.isEmpty() ? msg : acc + "; " + msg);
+                        return Response.status(Response.Status.BAD_REQUEST)
+                                        .entity(new ApiResponse<>(false, errorMessage, null))
+                                        .build();
+                }
+
+                Handle handle = jdbi.open();
+
+                try {
+                        // begin the transaction
+                        handle.begin();
+
+                        SelfFundedDao selfFundedDao = jdbi.onDemand(SelfFundedDao.class);
+                        if (handle != null) {
+                                selfFundedDao = handle.attach(SelfFundedDao.class);
+                        }
+
+                        Map<String, Object> prefundedEmailMap = new HashMap<>();
+                        prefundedEmailMap.put("type", body.getType());
+                        prefundedEmailMap.put("subject", body.getSubject());
+                        prefundedEmailMap.put("is_active", true);
+                        prefundedEmailMap.put("partnered_claim_no",
+                                        body.getPartneredClaimNo() == null ? null : body.getPartneredClaimNo());
+                        prefundedEmailMap.put("pf_request_id",
+                                        body.getPfRequestId() == null ? null : body.getPfRequestId());
+                        prefundedEmailMap.put("policy_no", body.getPolicyNo() == null ? null : body.getPolicyNo());
+                        prefundedEmailMap.put("claim_no", body.getClaimNo() == null ? null : body.getClaimNo());
+
+                        Long getEmailInsert = selfFundedDao.setEmailerData(prefundedEmailMap);
+
+                        if (getEmailInsert == null) {
+                                handle.rollback();
+                                return Response.status(Response.Status.OK)
+                                                .entity(new ApiResponse<>(false,
+                                                                "Failed to insert Prefunded Email", null))
+                                                .build();
+                        }
+
+                        Map<String, Object> emailItemsMap = new HashMap<>();
+                        emailItemsMap.put("tpa_desk_id", body.getTpaDeskId() == null ? null : body.getTpaDeskId());
+                        emailItemsMap.put("claim_no", body.getClaimNo() == null ? null : body.getClaimNo());
+                        emailItemsMap.put("policy_no", body.getPolicyNo() == null ? null : body.getPolicyNo());
+                        emailItemsMap.put("initial_amt_req",
+                                        body.getInitialAmtReq() == null ? null : body.getInitialAmtReq());
+                        emailItemsMap.put("initial_amt_approved",
+                                        body.getInitialAmtApproved() == null ? null : body.getInitialAmtApproved());
+                        emailItemsMap.put("final_adj_amt_req",
+                                        body.getFinalAdjAmtReq() == null ? null : body.getFinalAdjAmtReq());
+                        emailItemsMap.put("final_adj_amt_approved",
+                                        body.getFinalAdjAmtApproved() == null ? null : body.getFinalAdjAmtApproved());
+                        emailItemsMap.put("patient_name", body.getPatientName() == null ? null : body.getPatientName());
+                        emailItemsMap.put("metadata", body.getMetadata());
+
+                        Long getEmailItems = selfFundedDao.setEmailItems(emailItemsMap);
+
+                        if (getEmailItems == null) {
+                                handle.rollback();
+                                return Response.status(Response.Status.OK)
+                                                .entity(new ApiResponse<>(false, "Failed to insert Adjudication Data",
+                                                                null))
+                                                .build();
+                        }
+
+                        handle.commit();
+                        return Response.status(Response.Status.OK)
+                                        .entity(new ApiResponse<>(true, "Successfully updated", getEmailInsert))
+                                        .build();
+                } catch (Exception e) {
+                        handle.rollback();
+                        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                                        .entity(new ApiResponse<>(false, "Error processing request: " + e.getMessage(),
+                                                        null))
+                                        .build();
+                } finally {
+                        // Ensure resources are properly closed
+                        handle.clean();
+                        handle.close();
+                }
+        }
+
 }

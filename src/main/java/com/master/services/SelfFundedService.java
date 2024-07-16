@@ -4,10 +4,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.jdbi.v3.core.Handle;
 import org.jdbi.v3.core.Jdbi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.master.MasterConfiguration;
+import com.master.api.ApiResponse;
 import com.master.core.constants.Constants;
 import com.master.db.model.PrefundedDocument;
 import com.master.db.model.PrefundedInfo;
@@ -66,4 +68,24 @@ public class SelfFundedService extends BaseService {
             return null;
         }
     }
+
+//     public ApiResponse<Object> handlePreAuth(Map<String, Object> reqBody) {
+
+
+//         Handle handle = jdbi.open();
+
+//         try {
+//             // begin the transaction
+//               handle.begin();
+
+
+//         SelfFundedDao selfFundedDao = jdbi.onDemand(SelfFundedDao.class);
+//         Long getEmailInsert = selfFundedDao.setEmailerData(reqBody);
+//         return new ApiResponse(true, "Successfully Updated", getEmailInsert); 
+
+//     }
+//     finally {
+//         handle.close();
+//     }
+// }
 }
