@@ -46,13 +46,12 @@ public class PreFundedController extends BaseController {
                         return Response.status(Response.Status.OK)
                                         .entity(new ApiResponse<>(true,
                                                         "Data Not Exist",
-                                                        null))
+                                                        metadata))
                                         .build();
                 }
                 return Response.status(Response.Status.OK)
                                 .entity(new ApiResponse<>(true,
-                                                "Successfully fetched",
-                                                metadata))
+                                                "Successfully fetched", metadata))
                                 .build();
         }
 }
