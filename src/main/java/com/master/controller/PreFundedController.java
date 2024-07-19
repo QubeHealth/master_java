@@ -26,11 +26,11 @@ import jakarta.ws.rs.core.Response;
 
 @Path("/api/prefunded")
 public class PreFundedController extends BaseController {
-        private PreFundedService service;
+        private PreFundedService preFundedService;
 
         public PreFundedController(MasterConfiguration configuration, Validator validator, Jdbi jdbi) {
                 super(configuration, validator, jdbi);
-                this.service = new PreFundedService(configuration, jdbi);
+                this.preFundedService = new PreFundedService(configuration, jdbi);
         }
 
         @POST
@@ -38,10 +38,9 @@ public class PreFundedController extends BaseController {
         @Produces(MediaType.APPLICATION_JSON)
         @Consumes(MediaType.APPLICATION_JSON)
         public Response getEmailMetaData(PreFundedSchema body) {
-                
-        final PreFundedDao preFundedDao = jdbi.onDemand(PreFundedDao.class);
-                String metadata = preFundedDao.getMetaData(body.getClaimNo());
         
+                String metadata = this.preFundedService.getEmailMetaData(body.getClaimNo());
+                
                 if (metadata == null) {
                         return Response.status(Response.Status.OK)
                                         .entity(new ApiResponse<>(true,
