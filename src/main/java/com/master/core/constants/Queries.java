@@ -67,4 +67,7 @@ public abstract class Queries {
                         + " WHERE (hsp.vpa_row_num = 1 OR hsp.bank_row_num = 1) "
                         + " ORDER BY TRIM(BOTH ' ' FROM hsp.hospital_name); ";
 
+        public static final String GET_QUBE_HSP_BY_BANK = "SELECT id as hsp_id, hospital_name as hsp_name, hsp_official_name, bank_account_number, bank_ifsc, status "
+                        + " from tbl_hsp  where bank_account_number = :accountNumber and bank_ifsc =:ifscCode and is_active = 0 order by id desc limit 1";
+
 }
