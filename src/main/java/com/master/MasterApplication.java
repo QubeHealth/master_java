@@ -52,8 +52,12 @@ public class MasterApplication extends Application<MasterConfiguration> {
                 .addMappingForUrlPatterns(null, true, "/api/master/*");
 
         HspController hspController = new HspController(configuration, validator, jdbi);
+        SelfFundedController selfFundedController = new SelfFundedController(configuration, validator, jdbi);
+        PreFundedController preFundedController = new PreFundedController(configuration, validator, jdbi);
 
         environment.jersey().register(hspController);
+        environment.jersey().register(selfFundedController);
+        environment.jersey().register(preFundedController);
     }
 
 }
