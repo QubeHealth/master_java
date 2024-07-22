@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
-public class PreFundedSchema {
+public class PreFundedMailSchema {
 
     @NotBlank
     @JsonProperty("claim_no")
