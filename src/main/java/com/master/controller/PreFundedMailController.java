@@ -1,23 +1,11 @@
 package com.master.controller;
 
 import com.master.services.PreFundedMailService;
-import com.master.services.PreFundedMailService;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.jdbi.v3.core.Handle;
 import org.jdbi.v3.core.Jdbi;
 
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
 import com.master.core.validations.PreFundedMailSchema;
-import com.master.core.validations.PreFundedMailSchema;
-import com.master.db.repository.PreFundedMailDao;
-
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
