@@ -3,6 +3,7 @@ package com.master;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.jdbi.v3.core.Jdbi;
 
+import com.master.controller.BillsVerificationController;
 import com.master.controller.HspController;
 import com.master.controller.MiscellaneousController;
 import com.master.controller.PartnershipController;
@@ -63,6 +64,7 @@ public class MasterApplication extends Application<MasterConfiguration> {
         PartnershipController partnershipController= new PartnershipController(configuration, validator, jdbi);
         MiscellaneousController miscellaneousController = new MiscellaneousController(configuration, validator, jdbi);
         environment.jersey().register(new RequestResponseLoggingFilter());
+        BillsVerificationController billsVerificationController= new BillsVerificationController(configuration, validator, jdbi);
         environment.jersey().register(hspController);
         environment.jersey().register(selfFundedController);
         environment.jersey().register(queueConnection);
@@ -70,6 +72,7 @@ public class MasterApplication extends Application<MasterConfiguration> {
 
         environment.jersey().register(partnershipController);
         environment.jersey().register(miscellaneousController);
+        environment.jersey().register(billsVerificationController);
     }
 
 }
