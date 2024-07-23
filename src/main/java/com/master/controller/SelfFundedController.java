@@ -1,6 +1,5 @@
 package com.master.controller;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,9 +9,8 @@ import org.jdbi.v3.core.Jdbi;
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
 import com.master.api.SelfFundedDocuments;
-import com.master.core.validations.MiscDataSchema;
 import com.master.core.validations.SelfFundedDataSchema;
-import com.master.db.model.Miscellaneous;
+import com.master.core.validations.SelfFundedDocSchema;
 import com.master.db.model.PrefundedBankDetails;
 import com.master.db.model.PrefundedDocument;
 import com.master.services.SelfFundedService;
@@ -54,8 +52,8 @@ public class SelfFundedController extends BaseController {
         @Path("/documents")
         @Produces(MediaType.APPLICATION_JSON)
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response getDocuments(SelfFundedDataSchema.Documents reqBody) {
-                Set<ConstraintViolation<SelfFundedDataSchema.Documents>> violations = validator.validate(reqBody);
+        public Response getDocuments(SelfFundedDocSchema reqBody) {
+                Set<ConstraintViolation<SelfFundedDocSchema>> violations = validator.validate(reqBody);
                 if (!violations.isEmpty()) {
                         // Construct error message from violations
                         String errorMessage = violations.stream()

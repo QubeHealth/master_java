@@ -19,15 +19,5 @@ public class SelfFundedDataSchema {
 
     }
 
-    @Getter
-    @Setter
-    public static class Documents {
-        @NotNull(message = "hsp_id cannot be empty")
-        @JsonProperty("hsp_id")
-        private Long hspId;
-
-        @JsonProperty("show_info")
-        private boolean showInfo;
-        
-    }
+  
 }

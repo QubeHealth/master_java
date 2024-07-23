@@ -11,7 +11,6 @@ import com.master.controller.SelfFundedController;
 import com.master.utility.AuthFilter;
 import com.master.utility.CustomSqlLogger;
 import com.master.utility.JwtAuthenticationFilter;
-import com.master.utility.RequestResponseLoggingFilter;
 import com.master.utility.sqs.QueueConnection;
 
 import io.dropwizard.core.Application;
@@ -63,8 +62,10 @@ public class MasterApplication extends Application<MasterConfiguration> {
         QueueConnection queueConnection = new QueueConnection(configuration);
         PartnershipController partnershipController= new PartnershipController(configuration, validator, jdbi);
         MiscellaneousController miscellaneousController = new MiscellaneousController(configuration, validator, jdbi);
-        environment.jersey().register(new RequestResponseLoggingFilter());
-        BillsVerificationController billsVerificationController= new BillsVerificationController(configuration, validator, jdbi);
+        
+        BillsVerificationController billsVerificationController = new BillsVerificationController(configuration,
+                validator, jdbi);
+        //environment.jersey().register(new RequestResponseLoggingFilter());
         environment.jersey().register(hspController);
         environment.jersey().register(selfFundedController);
         environment.jersey().register(queueConnection);
