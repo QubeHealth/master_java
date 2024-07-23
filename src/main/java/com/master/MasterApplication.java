@@ -3,12 +3,14 @@ package com.master;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.jdbi.v3.core.Jdbi;
 
-import com.master.controller.PartnershipController;
 import com.master.controller.HspController;
 import com.master.controller.MiscellaneousController;
+import com.master.controller.PartnershipController;
 import com.master.controller.SelfFundedController;
 import com.master.utility.AuthFilter;
+import com.master.utility.CustomSqlLogger;
 import com.master.utility.JwtAuthenticationFilter;
+import com.master.utility.RequestResponseLoggingFilter;
 import com.master.utility.sqs.QueueConnection;
 
 import io.dropwizard.core.Application;
@@ -40,6 +42,7 @@ public class MasterApplication extends Application<MasterConfiguration> {
             final Environment environment) {
         final JdbiFactory factory = new JdbiFactory();
         final Jdbi jdbi = factory.build(environment, configuration.getDataSourceFactory(), "mysql");
+        jdbi.setSqlLogger(new CustomSqlLogger());
 
         ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
         Validator validator = validatorFactory.getValidator();
@@ -48,7 +51,7 @@ public class MasterApplication extends Application<MasterConfiguration> {
                 configuration.getJwtTokenSignature());
         environment.servlets().addFilter("jwt-token", jwtauthenticationFilter)
                 .addMappingForUrlPatterns(null, true, "/api/master/*", "/api/hsp/saveHspBank");
-
+       
         AuthFilter cAuthFilter = new AuthFilter(configuration.getxApiKey(), configuration.getAuthorizationKey());
 
         environment.servlets().addFilter("auth-filter", cAuthFilter)
@@ -59,7 +62,7 @@ public class MasterApplication extends Application<MasterConfiguration> {
         QueueConnection queueConnection = new QueueConnection(configuration);
         PartnershipController partnershipController= new PartnershipController(configuration, validator, jdbi);
         MiscellaneousController miscellaneousController = new MiscellaneousController(configuration, validator, jdbi);
-
+        environment.jersey().register(new RequestResponseLoggingFilter());
         environment.jersey().register(hspController);
         environment.jersey().register(selfFundedController);
         environment.jersey().register(queueConnection);
