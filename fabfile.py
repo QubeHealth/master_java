@@ -11,13 +11,13 @@ APP_NAME = 'master'
 JAR_FILE = 'target/' + APP_NAME + '-1.0-SNAPSHOT'+'.jar'  # Change this to your actual JAR file path
 CONFIG_FILE = 'config.yml'  # Path to your config.yml file
 OUTPUT_LOG = '/Users/muhammedafthad/MASTER_JAVA/server_log.txt'
-PORT=5012
+PORT=5014
 
 # Remote paths
 REMOTE_PROJECT_DIR = '/root/java_service/' + APP_NAME + '/'
 REMOTE_JAR_PATH = REMOTE_PROJECT_DIR + APP_NAME + '.jar'
 REMOTE_CONFIG_PATH = REMOTE_PROJECT_DIR + 'config.yml'
-REMOTE_NOHUP_LOG_PATH = REMOTE_PROJECT_DIR + 'nohup.out'  # Path to the nohup log file
+REMOTE_NOHUP_LOG_PATH = REMOTE_PROJECT_DIR + APP_NAME +'.out'  # Path to the nohup log file
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
@@ -40,7 +40,7 @@ def build(c):
     example: fab build
     """
     logger.info(f"{bcolors.OKGREEN}Starting to package the local project build...{bcolors.ENDC}")
-    run('mvn clean package')
+    run('mvn clean install')
     logger.info(f"{bcolors.OKGREEN}Packaged local project into {JAR_FILE}{bcolors.ENDC}")
 
 @task
@@ -66,7 +66,7 @@ def start_server(c):
     """
     with conn.cd(REMOTE_PROJECT_DIR):
         logger.info(f"{bcolors.OKBLUE}Starting the Dropwizard application...{bcolors.ENDC}")
-        conn.run(f'nohup java -jar {REMOTE_JAR_PATH} server {REMOTE_CONFIG_PATH} &')
+        conn.run(f'nohup java -jar {REMOTE_JAR_PATH} server {REMOTE_CONFIG_PATH}  > {REMOTE_NOHUP_LOG_PATH} 2>&1 &')
         logger.info(f"{bcolors.OKGREEN}Application started{bcolors.ENDC}")
 
 @task
