@@ -12,6 +12,8 @@ import com.master.api.ApiResponse;
 import com.master.api.SelfFundedDocuments;
 import com.master.core.validations.EmailerTemplateSchema;
 import com.master.core.validations.SelfFundedDataSchema;
+import com.master.core.validations.SelfFundedDocSchema;
+import com.master.db.model.PrefundedBankDetails;
 import com.master.db.model.EmailerItems;
 import com.master.db.model.PrefundedDocument;
 import com.master.db.model.PrefundedEmailers;
@@ -55,8 +57,8 @@ public class SelfFundedController extends BaseController {
         @Path("/documents")
         @Produces(MediaType.APPLICATION_JSON)
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response getDocuments(SelfFundedDataSchema.Documents reqBody) {
-                Set<ConstraintViolation<SelfFundedDataSchema.Documents>> violations = validator.validate(reqBody);
+        public Response getDocuments(SelfFundedDocSchema reqBody) {
+                Set<ConstraintViolation<SelfFundedDocSchema>> violations = validator.validate(reqBody);
                 if (!violations.isEmpty()) {
                         // Construct error message from violations
                         String errorMessage = violations.stream()
@@ -83,6 +85,30 @@ public class SelfFundedController extends BaseController {
                                                 "Successfully fetched",
                                                 response))
                                 .build();
+        }
+
+        @POST
+        @Path("/branches")
+        @Produces(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response getBankDetails() {
+
+                List<PrefundedBankDetails> bankDetails = null;
+                bankDetails = this.service.getSelfFundedHspDetails();
+                if (bankDetails == null) {
+                        Response.status(Response.Status.EXPECTATION_FAILED)
+                                        .entity(new ApiResponse<>(false,
+                                                        "No records found",
+                                                        bankDetails))
+                                        .build();
+                }
+
+                return Response.status(Response.Status.OK)
+                                .entity(new ApiResponse<>(true,
+                                                "Successfully fetched",
+                                                bankDetails))
+                                .build();
+
         }
 
         @POST

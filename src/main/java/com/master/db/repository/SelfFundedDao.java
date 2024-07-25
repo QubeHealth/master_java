@@ -5,12 +5,14 @@ import java.util.Map;
 
 import org.jdbi.v3.sqlobject.config.RegisterBeanMapper;
 import org.jdbi.v3.sqlobject.customizer.Bind;
+import org.jdbi.v3.sqlobject.customizer.BindList;
 import org.jdbi.v3.sqlobject.customizer.BindMap;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
 import com.master.core.constants.Queries;
+import com.master.db.model.PrefundedBankDetails;
 import com.master.db.model.EmailerTemplates;
 import com.master.db.model.PrefundedDocument;
 
@@ -23,6 +25,11 @@ public interface SelfFundedDao {
     @SqlQuery(Queries.GET_SELF_FUNDED_DOCUMENTS_BY_BRANCH)
     @RegisterBeanMapper(PrefundedDocument.class)
     List<PrefundedDocument> getSelfFundedDataByBranch(@Bind("branchId") Long branch);
+
+    @SqlQuery(Queries.GET_SELF_FUNDED_BANK_DETAILS)
+    @RegisterBeanMapper(PrefundedBankDetails.class)
+    List<PrefundedBankDetails> getPrefundedBankDetails();
+
 
     @SqlUpdate(Queries.INSERT_EMAILER_DATA)
     @GetGeneratedKeys("id")

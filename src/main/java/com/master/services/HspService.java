@@ -6,25 +6,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.glassfish.jersey.message.internal.Qualified;
 import org.jdbi.v3.core.Jdbi;
-import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.master.MasterConfiguration;
+import com.master.api.ApiResponse;
 import com.master.api.InsertHspBrandName;
-import com.master.core.constants.Queries;
+import com.master.api.QrData.QrResponse;
+import com.master.api.QrData.QubeQr;
+import com.master.client.LinkageNwService;
 import com.master.core.validations.SaveHspBrandName;
 import com.master.core.validations.PaymentSchemas.BankSchema;
+import com.master.core.validations.PaymentSchemas.QrSchema;
 import com.master.db.model.Hsp;
+import com.master.db.model.HspMetadata;
+import com.master.db.model.PartnerCategory;
 import com.master.db.model.GetHspBrandName;
 import com.master.db.repository.HspDao;
+import com.master.db.repository.MiscDao;
+import com.master.utility.Helper;
+
+import jakarta.ws.rs.core.Response;
 
 public class HspService extends BaseService {
 
+    private LinkageNwService linkageNwService;
+
     public HspService(MasterConfiguration configuration, Jdbi jdbi) {
         super(configuration, jdbi);
+        this.linkageNwService = new LinkageNwService(configuration);
     }
 
     public List<Hsp> getHspDataListByIds(List<Integer> hspIds) {
@@ -80,7 +91,9 @@ public class HspService extends BaseService {
             hspDao.insertHspBrandName(reqBody.getHspId(), updatedJsonData);
             return new InsertHspBrandName(true, "Successfully updated existing Hsp Brand Name List");
 
-        } catch (Exception e) {
+        } catch (
+
+        Exception e) {
             return new InsertHspBrandName(false, "Failed to add Hsp Brand Name");
         }
     }
@@ -112,7 +125,7 @@ public class HspService extends BaseService {
         HspDao hspDao = jdbi.onDemand(HspDao.class);
 
         Hsp hsp = hspDao.getHspbyMobile(mobile);
-        if (hsp == null) {
+        if (hsp == null || hsp.getStatus() == null || hsp.getVpa() == null) {
             return null;
         }
 
@@ -131,7 +144,7 @@ public class HspService extends BaseService {
         HspDao hspDao = jdbi.onDemand(HspDao.class);
 
         Hsp hsp = hspDao.getHspbyVpa(vpa);
-        if (hsp == null) {
+        if (hsp == null || hsp.getStatus() == null) {
             return null;
         }
 
@@ -150,7 +163,7 @@ public class HspService extends BaseService {
         HspDao hspDao = jdbi.onDemand(HspDao.class);
 
         Hsp hsp = hspDao.getHspbyBankDetails(body);
-        if (hsp == null) {
+        if (hsp == null || hsp.getStatus() == null) {
             return null;
         }
 
@@ -163,6 +176,137 @@ public class HspService extends BaseService {
         data.put("hsp_id", hsp.getHspId());
 
         return data;
+    }
+
+    public Hsp getHspbyQRVpa(String vpa) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        return hspDao.getHspbyQRVpa(vpa);
+    }
+
+    public Hsp getHspbyQRMcc(String vpa) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        return hspDao.getHspbyQRMcc(vpa);
+    }
+
+    public Integer insertHspQr(String hspName, Integer mccCode, String vpa, String hspBankName, Boolean isValidHsp) {
+
+        Map<String, Object> insertMap = new HashMap<>();
+
+        insertMap.put("hospitalName", hspName);
+        insertMap.put("uuid", UUID.randomUUID().toString());
+        insertMap.put("mcc", mccCode);
+        insertMap.put("vpa", vpa);
+        insertMap.put("bankAccountName", hspBankName);
+        insertMap.put("status", Boolean.TRUE.equals(isValidHsp) ? "VERIFIED" : "PENDING");
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        return hspDao.insertHspQr(insertMap);
+
+    }
+
+    public Integer updateHspLocation(String location, String hspContact, String hspId) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        return hspDao.updateHspLocation(location, hspContact, hspId);
+    }
+
+    public Long insertHspQrData(Map<String, Object> insertData) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+        return hspDao.insertHspQrData(insertData);
+    }
+
+    public String validateOnBankAccountName(String vpa, String hspId) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        ApiResponse<Object> vpaRes = this.linkageNwService.validateVpa(vpa);
+
+        System.out.println("validateonBankAccoutName => " + Helper.toJsonString(vpaRes));
+
+        if (!vpaRes.getStatus()) {
+            return null;
+        }
+
+        Map<String, Object> vpaData = (Map<String, Object>) vpaRes.getData();
+
+        String bankAccountName = vpaData.get("bank_account_name").toString();
+
+        Integer success = hspDao.updateHospitalOfficialName(hspId, bankAccountName);
+        System.out.println("update hsp bank name " + success);
+        if (success != null) {
+            Hsp hsp = hspDao.getHspName(hspId);
+
+            if (hsp.getHspName().toLowerCase().contains("merchant")) {
+                success = hspDao.updateHospitalName(hspId, bankAccountName);
+                System.out.println("update hsp name " + success);
+            }
+        }
+
+        return bankAccountName;
+    }
+
+    public HspMetadata getHspMetadata(String hspId) {
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+        return hspDao.getHspMetaData(hspId);
+    }
+
+    public PartnerCategory getPartnerCategory(String key) {
+        MiscDao miscDao = jdbi.onDemand(MiscDao.class);
+        return miscDao.getCategoryMisc(key);
+    }
+
+    public Integer insertDataInHspMetadata(String hspId, String category, String subcategory, String keyword) {
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+        return hspDao.updateHspMetadata(hspId, category, subcategory, keyword);
+    }
+
+    public Hsp getQubeQRHsp(BankSchema body) {
+
+        HspDao hspDao = jdbi.onDemand(HspDao.class);
+
+        Hsp hsp = hspDao.getHspbyBankDetails(body);
+        if (hsp == null || hsp.getStatus() == null) {
+            return null;
+        }
+        return hsp;
+    }
+
+    public QrResponse validateQubeQr(QrSchema body) {
+
+        QrResponse qrResponse = new QrResponse();
+
+        String qubeQrUrl = Helper.decryptData("qubehealth", body.getUpiQrUrl());
+        System.out.println(qubeQrUrl);
+
+        if (qubeQrUrl != null) {
+
+            QubeQr qubeQr = Helper.parseQubeQr(qubeQrUrl);
+
+            if (qubeQr != null && qubeQr.getAccountNumber() != null && qubeQr.getIfsc() != null) {
+                BankSchema req = new BankSchema();
+                req.setAccountNumber(qubeQr.getAccountNumber());
+                req.setIfscCode(qubeQr.getIfsc());
+                Hsp hsp = getQubeQRHsp(req);
+
+                if (hsp != null) {
+                    qrResponse.setBankAccountName(hsp.getHspOfficialName());
+                    qrResponse.setHspId(hsp.getHspId());
+                    qrResponse.setMerchantName(hsp.getHspName());
+                    qrResponse.setStatus("VALID_HSP");
+                    qrResponse.setVpa(hsp.getBankAccountNumber());
+
+                }
+            }
+
+        }
+        return qrResponse;
     }
 
 }
