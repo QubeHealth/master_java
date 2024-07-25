@@ -28,4 +28,25 @@ public class PrefundedEmailers {
 
     @JsonProperty("claim_no")
     private String claimNo;
+
+    @JsonProperty("tpa_desk_id")
+    private String tpaDeskId;
+
+    @JsonProperty("initial_amt_req")
+    private String initialAmtReq;
+
+    @JsonProperty("initial_amt_approved")
+    private String initialAmtApproved;
+
+    @JsonProperty("final_adj_amt_req")
+    private String finalAdjAmtReq;
+
+    @JsonProperty("inal_adj_amt_approved")
+    private String finalAdjAmtApproved;
+
+    @JsonProperty("patient_name")
+    private String patientName;
+
+    @JsonProperty("metadata")
+    private String metadata;
 }
