@@ -18,6 +18,88 @@ public class MasterConfiguration extends Configuration {
     @NotEmpty
     private String xApiKey;
 
+    @NotEmpty
+    private String linkageJavaUrl;
+
+    public static class RabbitMqConfig {
+        @NotEmpty
+        private String userName;
+
+        @NotEmpty
+        private String password;
+
+        @NotEmpty
+        private String virtualHost;
+
+        @NotEmpty
+        private String hostName;
+
+        private int portNumber;
+
+        private String env;
+
+        public String getUserName() {
+            return userName;
+        }
+
+        public void setUserName(String userName) {
+            this.userName = userName;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getVirtualHost() {
+            return virtualHost;
+        }
+
+        public void setVirtualHost(String virtualHost) {
+            this.virtualHost = virtualHost;
+        }
+
+        public String getHostName() {
+            return hostName;
+        }
+
+        public void setHostName(String hostName) {
+            this.hostName = hostName;
+        }
+
+        public int getPortNumber() {
+            return portNumber;
+        }
+
+        public void setPortNumber(int portNumber) {
+            this.portNumber = portNumber;
+        }
+
+        public String getEnv() {
+            return env;
+        }
+
+        public void setEnv(String env) {
+            this.env = env;
+        }
+    }
+
+    @Valid
+    @NotNull
+    @JsonProperty("rabbitmq")
+    private RabbitMqConfig rabbitMqConfig = new RabbitMqConfig();
+
+    public RabbitMqConfig getRabbitMqConfig() {
+        return rabbitMqConfig;
+    }
+
+    public void setRabbitMqConfig(RabbitMqConfig rabbitMqConfig) {
+        this.rabbitMqConfig = rabbitMqConfig;
+    }
+
     public String getxApiKey() {
         return xApiKey;
     }
@@ -50,7 +132,7 @@ public class MasterConfiguration extends Configuration {
         this.jwtTokenSignature = jwtTokenSignature;
     }
 
-     @Valid
+    @Valid
     @NotNull
     @JsonProperty("database")
     private DataSourceFactory database = new DataSourceFactory();
@@ -62,4 +144,13 @@ public class MasterConfiguration extends Configuration {
     public void setDatabase(DataSourceFactory database) {
         this.database = database;
     }
+
+    public String getLinkageJavaUrl() {
+        return linkageJavaUrl;
+    }
+
+    public void setLinkageJavaUrl(String linkageJavaUrl) {
+        this.linkageJavaUrl = linkageJavaUrl;
+    }
+
 }

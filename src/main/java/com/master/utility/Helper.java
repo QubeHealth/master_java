@@ -1,25 +1,43 @@
 package com.master.utility;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-
-import javax.crypto.Cipher;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.json.JSONObject;
+
+import com.emv.qrcode.core.model.mpm.TagLengthString;
+import com.emv.qrcode.decoder.mpm.DecoderMpm;
+import com.emv.qrcode.model.mpm.MerchantAccountInformationReservedAdditional;
+import com.emv.qrcode.model.mpm.MerchantPresentedMode;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonArray;
+import com.master.api.QrData.QrInfo;
+import com.master.api.QrData.QubeQr;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class Helper {
     private Helper() {
@@ -68,9 +86,9 @@ public final class Helper {
 
             return new String(decrypted, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("DECRYPT DATA => " + e.getMessage());
+            return null;
         }
-        return null;
     }
 
     public static String encryptData(String userId, String data) {
@@ -147,6 +165,10 @@ public final class Helper {
         return DigestUtils.md5Hex(input);
     }
 
+    public static String md5Decryption(String input) {
+        return DigestUtils.md5Hex(input);
+    }
+
     public static boolean isValidUrl(String urlString) {
         try {
             // Attempt to create a URL object
@@ -157,4 +179,162 @@ public final class Helper {
         }
     }
 
+    public static class DataMapper {
+        private DataMapper() {
+        }
+
+        public static <T> Map<String, Object> mapApiResponse(T response) {
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                return mapper.convertValue(response, new TypeReference<Map<String, Object>>() {
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Collections.emptyMap();
+            }
+        }
+
+    }
+
+    public static QrInfo parseUPIUrl(String url) {
+        try {
+
+            Map<String, String> queryParams = parseUrlToMap(url);
+
+            System.out.println("UPI URL PARSER => " + Helper.toJsonString(queryParams));
+
+            if (queryParams.isEmpty()) {
+                return null;
+            }
+
+            // Creating the HashMap with the required key-value pairs
+            QrInfo data = new QrInfo();
+            data.setAmount(queryParams.getOrDefault("am", null));
+            data.setMccCode(queryParams.getOrDefault("mc", null));
+            data.setMerchantName(queryParams.getOrDefault("pn", null));
+            data.setTransactionId(queryParams.getOrDefault("tr", null));
+            data.setVpa(queryParams.getOrDefault("pa", null));
+
+            return data;
+
+        } catch (Exception e) {
+            System.out.println(e);
+            return null;
+        }
+    }
+
+    public static QrInfo parseEMVQR(String url) {
+        try {
+
+            QrInfo qrData = new QrInfo();
+
+            MerchantPresentedMode data = DecoderMpm.decode(url, MerchantPresentedMode.class);
+            System.out.println("EMV QR PARSER => " + Helper.toJsonString(data));
+
+            if (data != null) {
+                setQrData(data, qrData);
+            }
+
+            return qrData;
+
+        } catch (Exception e) {
+            System.out.println(e);
+            return null;
+        }
+    }
+
+    private static void setQrData(MerchantPresentedMode data, QrInfo queryParams) {
+        setIfNotNull(data.getMerchantCategoryCode(), queryParams::setMccCode);
+        setIfNotNull(data.getMerchantName(), queryParams::setMerchantName);
+        setVpa(data, queryParams);
+        setIfNotNull(data.getMerchantCity(), queryParams::setMerchantCity);
+        setIfNotNull(data.getPostalCode(), queryParams::setMerchantPincode);
+        setTransactionId(data, queryParams);
+        setIfNotNull(data.getTransactionAmount(), queryParams::setAmount);
+    }
+
+    private static void setIfNotNull(TagLengthString fieldValueWrapper, Consumer<String> setter) {
+        if (fieldValueWrapper != null && fieldValueWrapper.getValue() != null) {
+            setter.accept(fieldValueWrapper.getValue());
+        }
+    }
+
+    private static void setVpa(MerchantPresentedMode data, QrInfo queryParams) {
+        if (data.getMerchantAccountInformation() != null && data.getMerchantAccountInformation().get("26") != null) {
+            MerchantAccountInformationReservedAdditional accountInfo = data.getMerchantAccountInformation()
+                    .get("26")
+                    .getTypeValue(MerchantAccountInformationReservedAdditional.class);
+            if (accountInfo != null && accountInfo.getPaymentNetworkSpecific() != null
+                    && accountInfo.getPaymentNetworkSpecific().get("01") != null
+                    && accountInfo.getPaymentNetworkSpecific().get("01").getValue() != null) {
+                queryParams.setVpa(accountInfo.getPaymentNetworkSpecific().get("01").getValue());
+            }
+        }
+    }
+
+    private static void setTransactionId(MerchantPresentedMode data, QrInfo queryParams) {
+        if (data.getAdditionalDataField() != null && data.getAdditionalDataField().getValue() != null
+                && data.getAdditionalDataField().getValue().getReferenceLabel() != null
+                && data.getAdditionalDataField().getValue().getReferenceLabel().getValue() != null) {
+            queryParams.setTransactionId(data.getAdditionalDataField().getValue().getReferenceLabel().getValue());
+        }
+    }
+
+    public static Map<String, Object> jsonToMap(JSONObject jsonObject) {
+        Map<String, Object> map = new HashMap<>();
+        for (String key : jsonObject.keySet()) {
+            Object value = jsonObject.get(key);
+            if (value instanceof JSONObject) {
+                value = jsonToMap((JSONObject) value);
+            }
+            map.put(key, value);
+        }
+        return map;
+    }
+
+    private static Map<String, String> parseUrlToMap(String url) throws UnsupportedEncodingException {
+        Map<String, String> queryParams = new HashMap<>();
+
+        // Extract query string from URL
+        String queryString = url.substring(url.indexOf('?') + 1);
+
+        // Use regex pattern to match key-value pairs
+        Pattern pattern = Pattern.compile("([^&=]+)=([^&]*)");
+        Matcher matcher = pattern.matcher(queryString);
+
+        // Decode each key-value pair and put into map
+        while (matcher.find()) {
+            String key = URLDecoder.decode(matcher.group(1), StandardCharsets.UTF_8.name());
+            String value = URLDecoder.decode(matcher.group(2), StandardCharsets.UTF_8.name());
+            queryParams.put(key, value);
+        }
+
+        return queryParams;
+    }
+
+    public static QubeQr parseQubeQr(String url) {
+        try {
+
+            Map<String, String> queryParams = parseUrlToMap(url);
+
+            System.out.println("QUBE QR PARSER => " + Helper.toJsonString(queryParams));
+
+            if (queryParams.isEmpty()) {
+                return null;
+            }
+
+            // Creating the HashMap with the required key-value pairs
+            QubeQr data = new QubeQr();
+            data.setAccountNumber(queryParams.getOrDefault("accNo", null));
+            data.setIfsc(queryParams.getOrDefault("ifsc", null));
+            data.setMerchantName(queryParams.getOrDefault("hsp", null));
+            data.setMerchantCity(queryParams.getOrDefault("city", null));
+
+            return data;
+
+        } catch (Exception e) {
+            System.out.println(e);
+            return null;
+        }
+    }
 }
