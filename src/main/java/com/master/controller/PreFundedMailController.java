@@ -9,12 +9,15 @@ import org.jdbi.v3.core.Jdbi;
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
 import com.master.core.validations.PreFundedMailSchema;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -35,7 +38,7 @@ public class PreFundedMailController extends BaseController {
         @Path("/getEmailMetaData")
         @Produces(MediaType.APPLICATION_JSON)
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response getEmailMetaData(PreFundedMailSchema body) {
+        public Response getEmailMetaData(@Context HttpServletRequest request, PreFundedMailSchema body) {
                 Set<ConstraintViolation<PreFundedMailSchema>> violations = validator.validate(body);
                 if (!violations.isEmpty()) {
                         String errorMessage = violations.stream()
