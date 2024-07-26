@@ -76,7 +76,7 @@ public abstract class Queries {
 
         public static final String UPDATE_HSP_NAME_BILLS ="UPDATE tbl_hsp SET hospital_name = :hospitalName WHERE id = :hospitalId";
                 
-        public static final String GET_EMAILER_ITEMS_METADATA = "SELECT metadata FROM tbl_emailer_items " 
+        public static final String GET_EMAILER_ITEMS_METADATA = "SELECT metadata FROM tbl_prefunded_emailer_items " 
                         + "WHERE claim_no = :claim_no "
                         + "ORDER BY id DESC;";
 }
