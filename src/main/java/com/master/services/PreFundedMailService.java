@@ -14,8 +14,6 @@ public class PreFundedMailService extends BaseService {
     public String getEmailMetaData (String claimNo){
         
         final PreFundedMailDao preFundedMailDao = jdbi.onDemand(PreFundedMailDao.class);
-        String metadata = preFundedMailDao.getMetaData(claimNo);
-        
-        return metadata;
+        return preFundedMailDao.getMetaData(claimNo);
     }
 }

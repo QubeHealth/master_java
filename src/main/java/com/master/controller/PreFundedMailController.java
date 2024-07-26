@@ -38,25 +38,27 @@ public class PreFundedMailController extends BaseController {
         public Response getEmailMetaData(PreFundedMailSchema body) {
                 Set<ConstraintViolation<PreFundedMailSchema>> violations = validator.validate(body);
                 if (!violations.isEmpty()) {
-                        // Construct error message from violations
                         String errorMessage = violations.stream()
                                         .map(ConstraintViolation::getMessage)
                                         .reduce("", (acc, msg) -> acc.isEmpty() ? msg : acc + "; " + msg);
                         return response(Response.Status.BAD_REQUEST, new ApiResponse<>(false, errorMessage, null));
                 }
+                try {
+                        String metadata = this.preFundedMailService.getEmailMetaData(body.getClaimNo());
 
-                String metadata = this.preFundedMailService.getEmailMetaData(body.getClaimNo());
-
-                if (metadata == null) {
+                        if (metadata == null) {
+                                return Response.status(Response.Status.FORBIDDEN)
+                                                .entity(new ApiResponse<>(false, "Data Not Exist", metadata))
+                                                .build();
+                        }
                         return Response.status(Response.Status.OK)
-                                        .entity(new ApiResponse<>(true,
-                                                        "Data Not Exist",
-                                                        metadata))
+                                        .entity(new ApiResponse<>(true, "Metadata sended Successfully", metadata))
+                                        .build();
+                } catch (Exception e) {
+                        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                                        .entity(new ApiResponse<>(false, "error while fetching email metadata",
+                                                        e.getMessage()))
                                         .build();
                 }
-                return Response.status(Response.Status.OK)
-                                .entity(new ApiResponse<>(true,
-                                                "Successfully fetched", metadata))
-                                .build();
         }
 }
