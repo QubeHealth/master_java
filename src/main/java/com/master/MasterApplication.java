@@ -8,6 +8,7 @@ import com.master.controller.HspController;
 import com.master.controller.MiscellaneousController;
 import com.master.controller.PartnershipController;
 import com.master.controller.SelfFundedController;
+import com.master.controller.PreFundedMailController;
 import com.master.utility.AuthFilter;
 import com.master.utility.CustomSqlLogger;
 import com.master.utility.JwtAuthenticationFilter;
@@ -62,7 +63,8 @@ public class MasterApplication extends Application<MasterConfiguration> {
         QueueConnection queueConnection = new QueueConnection(configuration);
         PartnershipController partnershipController= new PartnershipController(configuration, validator, jdbi);
         MiscellaneousController miscellaneousController = new MiscellaneousController(configuration, validator, jdbi);
-        
+                PreFundedMailController preFundedMailController = new PreFundedMailController(configuration, validator, jdbi);
+
         BillsVerificationController billsVerificationController = new BillsVerificationController(configuration,
                 validator, jdbi);
         //environment.jersey().register(new RequestResponseLoggingFilter());
@@ -74,6 +76,7 @@ public class MasterApplication extends Application<MasterConfiguration> {
         environment.jersey().register(partnershipController);
         environment.jersey().register(miscellaneousController);
         environment.jersey().register(billsVerificationController);
+        environment.jersey().register(preFundedMailController);
     }
 
 }

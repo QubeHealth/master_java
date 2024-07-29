@@ -75,5 +75,8 @@ public abstract class Queries {
         public static final String GET_HSP_DROPDOWN_FOR_BILLS = "SELECT distinct hospital_name FROM tbl_hsp where hospital_name is not null and hospital_name != '' and hospital_name LIKE CONCAT('%', :searchInput, '%') ORDER BY hospital_name LIMIT 100 ";
 
         public static final String UPDATE_HSP_NAME_BILLS ="UPDATE tbl_hsp SET hospital_name = :hospitalName WHERE id = :hospitalId";
-        
+                
+        public static final String GET_EMAILER_ITEMS_METADATA = "SELECT metadata FROM tbl_prefunded_emailer_items " 
+                        + "WHERE claim_no = :claim_no "
+                        + "ORDER BY id DESC;";
 }
