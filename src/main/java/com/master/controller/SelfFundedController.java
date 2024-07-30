@@ -178,6 +178,7 @@ public class SelfFundedController extends BaseController {
                                 body.getFinalAdjAmtApproved() == null ? null : body.getFinalAdjAmtApproved());
                 bodyMap.put("patient_name", body.getPatientName() == null ? null : body.getPatientName());
                 bodyMap.put("metadata", body.getMetadata());
+                bodyMap.put("pf_emailer_id",body.getPfEmailerId() == null ? null : body.getPfEmailerId());
 
                 Long getEmailItems = selfFundedDao.setEmailItems(bodyMap);
 

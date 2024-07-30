@@ -37,4 +37,6 @@ public class EmailerItems {
     @JsonProperty("metadata")
     private String metadata;
 
+    @JsonProperty("pf_emailer_id")
+    private String pfEmailerId;
 }
