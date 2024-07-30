@@ -39,4 +39,7 @@ public class EmailerItems {
 
     @JsonProperty("pf_emailer_id")
     private String pfEmailerId;
+
+    @JsonProperty("is_active")
+    private String isActive;
 }

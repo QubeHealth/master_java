@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PrefundedEmailers {
-    private String type;
+    @JsonProperty("email_type")
+    private String emailType;
 
     private String subject;
 

@@ -131,14 +131,12 @@ public class SelfFundedController extends BaseController {
                 SelfFundedDao selfFundedDao = jdbi.onDemand(SelfFundedDao.class);
 
                 Map<String, Object> bodyMap = new HashMap<>();
-                bodyMap.put("type", body.getType());
+                bodyMap.put("email_type", body.getEmailType());
                 bodyMap.put("subject", body.getSubject());
                 bodyMap.put("is_active", true);
-                bodyMap.put("partnered_claim_no",
-                                body.getPartneredClaimNo() == null ? null : body.getPartneredClaimNo());
                 bodyMap.put("pf_request_id", body.getPfRequestId() == null ? null : body.getPfRequestId());
                 bodyMap.put("policy_no", body.getPolicyNo() == null ? null : body.getPolicyNo());
-                bodyMap.put("claim_no", body.getClaimNo() == null ? null : body.getClaimNo());
+                //bodyMap.put("claim_no", body.getClaimNo() == null ? null : body.getClaimNo());
                 Long getEmailInsert = selfFundedDao.setEmailerData(bodyMap);
 
                 return Response.status(Response.Status.OK)
@@ -179,6 +177,7 @@ public class SelfFundedController extends BaseController {
                 bodyMap.put("patient_name", body.getPatientName() == null ? null : body.getPatientName());
                 bodyMap.put("metadata", body.getMetadata());
                 bodyMap.put("pf_emailer_id",body.getPfEmailerId() == null ? null : body.getPfEmailerId());
+                bodyMap.put("is_active", body.getIsActive());
 
                 Long getEmailItems = selfFundedDao.setEmailItems(bodyMap);
 
@@ -256,7 +255,7 @@ public class SelfFundedController extends BaseController {
                         }
 
                         Map<String, Object> prefundedEmailMap = new HashMap<>();
-                        prefundedEmailMap.put("type", body.getType());
+                        prefundedEmailMap.put("email_type", body.getEmailType());
                         prefundedEmailMap.put("subject", body.getSubject());
                         prefundedEmailMap.put("is_active", true);
                         prefundedEmailMap.put("partnered_claim_no",
