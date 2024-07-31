@@ -4,6 +4,7 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.jdbi.v3.core.Jdbi;
 
 import com.master.controller.BillsVerificationController;
+import com.master.controller.FamilySchemaController;
 import com.master.controller.HspController;
 import com.master.controller.MiscellaneousController;
 import com.master.controller.PartnershipController;
@@ -67,6 +68,8 @@ public class MasterApplication extends Application<MasterConfiguration> {
 
         BillsVerificationController billsVerificationController = new BillsVerificationController(configuration,
                 validator, jdbi);
+        FamilySchemaController familySchemaController = new FamilySchemaController(configuration, validator, jdbi);
+        
         //environment.jersey().register(new RequestResponseLoggingFilter());
         environment.jersey().register(hspController);
         environment.jersey().register(selfFundedController);
@@ -77,6 +80,7 @@ public class MasterApplication extends Application<MasterConfiguration> {
         environment.jersey().register(miscellaneousController);
         environment.jersey().register(billsVerificationController);
         environment.jersey().register(preFundedMailController);
+        environment.jersey().register(familySchemaController);
     }
 
 }
