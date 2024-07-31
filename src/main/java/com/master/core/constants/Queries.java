@@ -79,4 +79,6 @@ public abstract class Queries {
         public static final String GET_EMAILER_ITEMS_METADATA = "SELECT metadata FROM tbl_prefunded_emailer_items " 
                         + "WHERE claim_no = :claim_no "
                         + "ORDER BY id DESC;";
+
+        public static final String GET_ADD_FAMILY_SCHEMA_JSON = "SELECT json_1 FROM tbl_miscellaneous WHERE `key` = :key";
 }
