@@ -31,10 +31,10 @@ public class FamilySchemaController extends BaseController {
     }
     
     @POST
-    @Path("/FamilyBenefitSchema")
+    @Path("/getMasterFamilySchema")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getFamilyBenefitSchema(@Context HttpServletRequest request) {
+    public Response getMasterFamilySchema(@Context HttpServletRequest request) {
         String tempKey = "add_family_schema";
 
         String jsonData = familySchemaService.getAddFamilytSchema(tempKey);
