@@ -70,4 +70,13 @@ public abstract class Queries {
         public static final String GET_QUBE_HSP_BY_BANK = "SELECT id as hsp_id, hospital_name as hsp_name, hsp_official_name, bank_account_number, bank_ifsc, status "
                         + " from tbl_hsp  where bank_account_number = :accountNumber and bank_ifsc =:ifscCode and is_active = 0 order by id desc limit 1";
 
+        public static final String GET_SELF_FUNDED_INSTRUCTIONS = " SELECT <column_names> FROM masters.tbl_miscellaneous WHERE `key` = :data";
+
+        public static final String GET_SELF_FUNDED_BANK_DETAILS = "SELECT hospital_name, city_name, state, pincode, bank_ifsc, bank_account_number, bank_name, vpa, address, hsp_id FROM masters.tbl_prefunded_branches tpb "
+                        + "INNER JOIN masters.tbl_hsp th " 
+                        + "ON tpb.hsp_id = th.id ;" ;
+        public static final String GET_HSP_DROPDOWN_FOR_BILLS = "SELECT distinct hospital_name FROM tbl_hsp where hospital_name is not null and hospital_name != '' and hospital_name LIKE CONCAT('%', :searchInput, '%') ORDER BY hospital_name LIMIT 100 ";
+
+        public static final String UPDATE_HSP_NAME_BILLS ="UPDATE tbl_hsp SET hospital_name = :hospitalName WHERE id = :hospitalId";
+        
 }
