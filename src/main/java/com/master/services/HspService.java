@@ -271,7 +271,7 @@ public class HspService extends BaseService {
 
         HspDao hspDao = jdbi.onDemand(HspDao.class);
 
-        Hsp hsp = hspDao.getHspbyBankDetails(body);
+        Hsp hsp = hspDao.getQubeHspbyBankDetails(body);
         if (hsp == null || hsp.getStatus() == null) {
             return null;
         }
