@@ -4,6 +4,7 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.jdbi.v3.core.Jdbi;
 
 import com.master.controller.BillsVerificationController;
+import com.master.controller.FraudController;
 import com.master.controller.HspController;
 import com.master.controller.MiscellaneousController;
 import com.master.controller.PartnershipController;
@@ -62,6 +63,7 @@ public class MasterApplication extends Application<MasterConfiguration> {
         QueueConnection queueConnection = new QueueConnection(configuration);
         PartnershipController partnershipController= new PartnershipController(configuration, validator, jdbi);
         MiscellaneousController miscellaneousController = new MiscellaneousController(configuration, validator, jdbi);
+        FraudController fraudController = new FraudController(configuration, validator, jdbi);
         
         BillsVerificationController billsVerificationController = new BillsVerificationController(configuration,
                 validator, jdbi);
@@ -74,6 +76,7 @@ public class MasterApplication extends Application<MasterConfiguration> {
         environment.jersey().register(partnershipController);
         environment.jersey().register(miscellaneousController);
         environment.jersey().register(billsVerificationController);
+        environment.jersey().register(fraudController);
     }
 
 }
