@@ -1,8 +1,6 @@
 package com.master.controller;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -10,14 +8,12 @@ import org.jdbi.v3.core.Jdbi;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.google.gson.JsonObject;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
 import com.master.core.validations.MiscDataSchema;
-import com.master.core.validations.SelfFundedDataSchema;
 import com.master.db.model.Miscellaneous;
 import com.master.services.MiscService;
-import com.master.services.SelfFundedService;
 import com.master.utility.Helper;
 
 import jakarta.validation.ConstraintViolation;
@@ -57,7 +53,7 @@ public class MiscellaneousController extends BaseController {
         Miscellaneous response = service.getMiscData(reqBody.getKey(), reqBody.getColumnNames());
 
         if (reqBody.getColumnNames().equals("json_1")) {
-            
+
             Object jsonContent = parseJson(response.getJson1());
             JSONObject jsonWrapper = new JSONObject();
             jsonWrapper.put("json_1", jsonContent);
@@ -65,10 +61,10 @@ public class MiscellaneousController extends BaseController {
             Map<String, Object> mapJson = new HashMap<>();
             mapJson = Helper.jsonToMap(jsonWrapper);
             return Response.status(Response.Status.OK)
-                .entity(new ApiResponse<>(true,
-                        "Successfully fetched",
-                        mapJson))
-                .build();
+                    .entity(new ApiResponse<>(true,
+                            "Successfully fetched",
+                            mapJson))
+                    .build();
         }
         return Response.status(Response.Status.OK)
                 .entity(new ApiResponse<>(true,
@@ -76,6 +72,7 @@ public class MiscellaneousController extends BaseController {
                         response))
                 .build();
     }
+
     private static Object parseJson(String jsonString) {
         try {
             // Try to parse as JSONObject
@@ -89,6 +86,53 @@ public class MiscellaneousController extends BaseController {
                 ex.printStackTrace();
                 return null;
             }
+        }
+    }
+
+    @POST
+    @Path("/getVouchersDashboardData")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getVouchersDashboardData() {
+
+        Miscellaneous video = service.getMiscData("voucher_videos", "json_1");
+
+        Miscellaneous partners = service.getMiscData("partners", "json_1");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+
+            // Parse input JSON strings
+            @SuppressWarnings("unchecked")
+            Map<String, Object> videoObj = objectMapper.readValue(video.getJson1(), Map.class);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> partnersObj = objectMapper.readValue(partners.getJson1(), Map.class);
+
+            // Create new JSON structure
+
+            // Process and add video data
+
+            result.put("video", videoObj.get("video"));
+
+            // Process and add partners data
+
+            result.put("partners", partnersObj.get("partners"));
+
+            return Response.status(Response.Status.OK)
+                    .entity(new ApiResponse<>(true,
+                            "Successfully fetched",
+                            result))
+                    .build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new ApiResponse<>(false,
+                            "Failed to fetch data",
+                            result))
+                    .build();
+
         }
     }
 
