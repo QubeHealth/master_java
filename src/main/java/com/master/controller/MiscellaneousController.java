@@ -100,8 +100,6 @@ public class MiscellaneousController extends BaseController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getVouchersDashboardData() {
 
-        Miscellaneous feedback = service.getMiscData("voucher_feedback", "json_1");
-
         Miscellaneous video = service.getMiscData("voucher_videos", "json_1");
 
         Miscellaneous partners = service.getMiscData("partners", "json_1");
@@ -112,7 +110,6 @@ public class MiscellaneousController extends BaseController {
         try {
 
             // Parse input JSON strings
-            Map<String, Object> feedbackObj = objectMapper.readValue(feedback.getJson1(), Map.class);
             Map<String, Object> videoObj = objectMapper.readValue(video.getJson1(), Map.class);
             Map<String, Object> partnersObj = objectMapper.readValue(partners.getJson1(), Map.class);
 
@@ -125,8 +122,6 @@ public class MiscellaneousController extends BaseController {
             // Process and add partners data
 
             result.put("partners", partnersObj.get("partners"));
-
-            result.put("feedback", feedbackObj.get("feedback"));
 
             return Response.status(Response.Status.OK)
                     .entity(new ApiResponse<>(true,
