@@ -1,8 +1,6 @@
 package com.master.controller;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,14 +9,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonObject;
 import com.master.MasterConfiguration;
 import com.master.api.ApiResponse;
 import com.master.core.validations.MiscDataSchema;
-import com.master.core.validations.SelfFundedDataSchema;
 import com.master.db.model.Miscellaneous;
 import com.master.services.MiscService;
-import com.master.services.SelfFundedService;
 import com.master.utility.Helper;
 
 import jakarta.validation.ConstraintViolation;
@@ -100,8 +95,6 @@ public class MiscellaneousController extends BaseController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getVouchersDashboardData() {
 
-        Miscellaneous feedback = service.getMiscData("voucher_feedback", "json_1");
-
         Miscellaneous video = service.getMiscData("voucher_videos", "json_1");
 
         Miscellaneous partners = service.getMiscData("partners", "json_1");
@@ -112,8 +105,9 @@ public class MiscellaneousController extends BaseController {
         try {
 
             // Parse input JSON strings
-            Map<String, Object> feedbackObj = objectMapper.readValue(feedback.getJson1(), Map.class);
+            @SuppressWarnings("unchecked")
             Map<String, Object> videoObj = objectMapper.readValue(video.getJson1(), Map.class);
+            @SuppressWarnings("unchecked")
             Map<String, Object> partnersObj = objectMapper.readValue(partners.getJson1(), Map.class);
 
             // Create new JSON structure
@@ -125,8 +119,6 @@ public class MiscellaneousController extends BaseController {
             // Process and add partners data
 
             result.put("partners", partnersObj.get("partners"));
-
-            result.put("feedback", feedbackObj.get("feedback"));
 
             return Response.status(Response.Status.OK)
                     .entity(new ApiResponse<>(true,
