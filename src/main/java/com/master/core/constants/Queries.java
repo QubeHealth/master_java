@@ -10,8 +10,8 @@ public abstract class Queries {
 
         public static final String INSERT_HSP_BRAND_NAME = "UPDATE tbl_hsp SET hsp_brand_name = :hspBrandName WHERE id = :hspId";
 
-        public static final String INSERT_HSP_BY_MOBILE = "INSERT INTO tbl_hsp (uuid, hospital_name, vpa, hsp_contact, hsp_official_name, status) "
-                        + "VALUES (:uuid, :merchant_name, :vpa, :mobile, :bank_account_name, :status);";
+        public static final String INSERT_HSP_BY_MOBILE = "INSERT INTO tbl_hsp (uuid, hospital_name, vpa, account_type, hsp_contact, hsp_official_name, status) "
+                        + "VALUES (:uuid, :merchant_name, :vpa, :account_type, :mobile, :bank_account_name, :status);";
 
         public static final String INSERT_HSP_BANK_DATA = "INSERT INTO tbl_hsp (uuid, hospital_name, bank_account_number, bank_ifsc, hsp_official_name, status) "
                         + "VALUES (:uuid, :bank_account_name, :account_number, :ifsc_code, :bank_account_name, :status);";
